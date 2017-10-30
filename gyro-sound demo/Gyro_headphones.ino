@@ -19,6 +19,7 @@ Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
 /* Update this with the correct SLP for accurate altitude measurements */
 float seaLevelPressure = SENSORS_PRESSURE_SEALEVELHPA;
 float RadOrien;
+float RadInit = -1.0;
 
 // Arduino DUE runs at 84 MHz
 // divisor options:
@@ -51,6 +52,9 @@ void myHandler()
     unsigned int ear_r = chirp[t0_counter] * right_gain * 4095;
     unsigned int ear_l = chirp[t0_counter] * left_gain * 4095;
     // DAC0 is right ear
+    //Serial.println(ear_r);
+    //Serial.println("");
+    //Serial.println(ear_l);
     analogWrite(DAC0, ear_r);
 
     // DAC1 is left ear
@@ -120,6 +124,23 @@ void setup(void)
     Serial.println( "CRITICAL ERROR :(");
     while(1);
   }
+  // Get the current facing:
+  sensors_event_t accel_event;
+  sensors_event_t mag_event;
+  sensors_vec_t   orientation;
+
+  /* Calculate the heading using the magnetometer */
+  Serial.println( "Finding current facing:");
+  while(RadInit == -1)
+  {
+    mag.getEvent(&mag_event);
+    if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation))
+    {
+      RadInit = (orientation.heading)*(PI/180);
+    }
+  }
+  Serial.print( "Current facing is: ");
+  Serial.println( RadInit);
 
   for(int i =0; i < (SAMPLE_RATE * CHIRP_DURATION); i++)
   {
@@ -149,20 +170,26 @@ void loop(void)
   if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation))
   {
     /* 'orientation' should have valid .heading data now */
-    Serial.print(F("Heading: "));
-    Serial.print(orientation.heading);
-    Serial.print(F("; "));
-    RadOrien = (orientation.heading)*(PI/180);
-    Serial.print(F("Heading in Rad: "));
-    Serial.print(RadOrien);
-    Serial.print(F("; "));
+    //Serial.print(F("Heading: "));
+    //Serial.print(orientation.heading);
+    //Serial.print(F("; "));
+    RadOrien = (orientation.heading)*(PI/180) - RadInit;
+    //Serial.print(F("Heading in Rad: "));
+    //Serial.print(RadOrien);
+    //Serial.print(F("; "));
   }
 
-  Serial.println(F(""));
+  //Serial.println(F(""));
 
   // Compute gain HERE because this is when GAIN CHANGES
   // Should probably be lowered to <16 khz frequency ?
-  right_gain = abs(sin((RadOrien / 2.0 + 45*PI/180)));
-  left_gain  = abs(cos((RadOrien / 2.0 + 45*PI/180)));
+  right_gain = abs((sin((RadOrien + 45*PI/180)) + 1)/2);
+  left_gain  = abs((cos((RadOrien + 45*PI/180)) + 1)/2);
+  //Serial.print("Right: ");
+  //Serial.print(right_gain);
+  //Serial.print("Left: ");
+  //Serial.println(left_gain);
+  
   delay(100);
 }
+
