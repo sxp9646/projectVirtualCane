@@ -138,7 +138,7 @@ int main()
     printf("playing sound?\n");
     alSourcei(source,AL_LOOPING,AL_TRUE); 
     alSourcePlay(source);
-    ALfloat pos[3] = {0};
+    ALfloat pos[3] = {0.0, 0.0, 2.0};
     ALfloat orient[6] = {0,0, -1, 0,1,0}; // AT, AT, AT, UP, UP, UP ?
     alListenerfv(AL_POSITION,pos);
     double degree = 90.0;
@@ -171,7 +171,7 @@ int main()
                     degree -= 6.0;
                     break;
                 case 'r':
-                    degree = 90.0;
+                    degree = 0.0;
                     //orient[0] = 0.0;
                     //orient[2] = -1.0;
                     pos[0] = 0.0;

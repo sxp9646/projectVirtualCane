@@ -15,14 +15,14 @@
 #ifndef __LSM9DS1_H__
 #define __LSM9DS1_H__
 
-//#if (ARDUINO >= 100)
-// #include "Arduino.h"
-//#else
-// #include "WProgram.h"
-//#endif
-//#include <Wire.h>
-//#include <SPI.h>
-//#include "./Adafruit_Sensor.h"
+#if (ARDUINO >= 100)
+ #include "Arduino.h"
+#else
+ #include "WProgram.h"
+#endif
+#include "Wire.h"
+#include <SPI.h>
+#include <Adafruit_Sensor.h>
 
 #define LSM9DS1_ADDRESS_ACCELGYRO          (0x6B)
 #define LSM9DS1_ADDRESS_MAG                (0x1E)
@@ -277,4 +277,4 @@ class Adafruit_LSM9DS1
 
 };
 
-//#endif
+#endif
