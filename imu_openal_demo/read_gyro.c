@@ -92,6 +92,7 @@ int main()
 
 	init();
 
+	/*
 	int n = read (fd, buff, sizeof(buff));  // read up to 100 characters if ready to read
 	zero = 360 - atof(buff);
 	degree= ((360 - atof(buff)) - zero)+ 90;
@@ -99,6 +100,7 @@ int main()
 	printf("Buffer in: %s\n", buff);
 	printf("Degrees: %f\n\n", degree);
 	turn(degree);
+	*/
 
 	do {
 		printf("Input Angle:\n");
@@ -117,8 +119,10 @@ int main()
 
 		// Zero out the gyro and turn the user to face it.
 		int n = read (fd, buff, sizeof(buff));  // read up to 100 characters if ready to read
-		zero = 360 - atof(buff) + angle;
-		degree= (360 - (atof(buff)) - zero + 90);
+		zero = atof(buff) + angle;
+		degree= (atof(buff)) - zero;
+		if(degree < 0)
+			degree += 360;
 		//sscanf(buff, "%f", &degree); 
 		printf("Buffer in: %s\n", buff);
 		printf("Degrees: %f\n\n", degree );
@@ -129,7 +133,9 @@ int main()
 		{
 			// Zero out the gyro and turn the user to face it.
 			int n = read (fd, buff, sizeof(buff));  // read up to 100 characters if ready to read
-			degree= (360 - (atof(buff)) - zero + 90);
+			degree= (atof(buff)) - zero;
+			if(degree < 0)
+				degree += 360;
 			//sscanf(buff, "%f", &degree); 
 			printf("Buffer in: %s\n", buff);
 			printf("Degrees: %f\n\n", degree);
