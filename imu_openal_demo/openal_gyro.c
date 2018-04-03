@@ -6,7 +6,7 @@
 //#include "efx.h"
 //#include "xram.h"
 
-#define	TEST_WAVE_FILE		"test.wav"
+#define	TEST_WAVE_FILE		"water.wav"
 #define NUM_BUFFERS (1)
 #define PI (3.14)
 
@@ -178,7 +178,7 @@ void turn(double degree)
     orient[2] = cos(degree * (PI / 180.0));
 
 
-    printf("Degree: %.2f\n", degree);
+    //printf("Degree: %.2f\n", degree);
     printf("at x: %.2f\tat y: %.2f\tat z: %.2f\n\n", orient[0], orient[1], orient[2]);
 
     alListenerfv(AL_ORIENTATION,orient); 

@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "/usr/include/AL/al.h"
-#include "/usr/include/AL/alc.h"
-#include "/usr/include/AL/alext.h"
+#include "al.h"
+#include "alc.h"
+#include "alext.h"
 //#include "efx.h"
 //#include "xram.h"
 
@@ -153,10 +153,10 @@ int main()
             switch(dir)
             {
                 case 'w':
-                    pos[2] -= 0.1;
+                    pos[2] += 0.1;
                     break;
                 case 's':
-                    pos[2] += 0.1;
+                    pos[2] -= 0.1;
                     break;
                 case 'a':
                     pos[0] += 0.1;
@@ -171,7 +171,7 @@ int main()
                     degree -= 6.0;
                     break;
                 case 'r':
-                    degree = 0.0;
+                    degree = 90.0;
                     //orient[0] = 0.0;
                     //orient[2] = -1.0;
                     pos[0] = 0.0;
