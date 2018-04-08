@@ -136,8 +136,8 @@ int init()
     // Wait for the song to complete
     //printf("playing sound?\n");
     ALfloat pos[3] = {0};
-    pos[2] = -1.0;
-    ALfloat orient[6] = {0,0, -1, 0,1,0}; // AT, AT, AT, UP, UP, UP ?
+    pos[2] = 2.0;
+    ALfloat orient[6] = {0,0, 1, 0,1,0}; // AT, AT, AT, UP, UP, UP ?
 
     alSourcefv(source, AL_POSITION, pos);
     pos[2] = 0.0;
@@ -163,13 +163,22 @@ void stop()
 
 void turn(double degree)
 {
-    ALfloat orient[6] = { 0, 0, -1, 0,1,0}; // AT, AT, AT, UP, UP, UP ?
+    Device = alcGetContextsDevice(Context);
+    if (Device == NULL) {
+    	Device = alcOpenDevice(NULL); // select the "preferred device"
+        Context = alcCreateContext(Device,NULL);
+        alcMakeContextCurrent(Context);
+    }
+    ALfloat orient[6] = { 0, 0, 1, 0,1,0}; // AT, AT, AT, UP, UP, UP ?
 
-    orient[0] = cos(degree * (PI / 180.0));
-    orient[2] = sin(degree * (PI / 180.0));
+	// X rotation
+    orient[0] = -1*sin(degree * (PI / 180.0));
+
+	// Z rotation
+    orient[2] = cos(degree * (PI / 180.0));
 
 
-    printf("Degree: %.2f\n", degree);
+    //printf("Degree: %.2f\n", degree);
     printf("at x: %.2f\tat y: %.2f\tat z: %.2f\n\n", orient[0], orient[1], orient[2]);
 
     alListenerfv(AL_ORIENTATION,orient); 

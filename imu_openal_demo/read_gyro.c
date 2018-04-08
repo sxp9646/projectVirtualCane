@@ -92,6 +92,7 @@ int main()
 
 	init();
 
+	/*
 	int n = read (fd, buff, sizeof(buff));  // read up to 100 characters if ready to read
 	zero = 360 - atof(buff);
 	degree= ((360 - atof(buff)) - zero)+ 90;
@@ -99,6 +100,12 @@ int main()
 	printf("Buffer in: %s\n", buff);
 	printf("Degrees: %f\n\n", degree);
 	turn(degree);
+	*/
+
+	// DEPRICATED
+	double fivepointer[5] = {0.0};
+	int fivepoint_size = 5;
+	int fv_pt_index = 0;
 
 	do {
 		printf("Input Angle:\n");
@@ -117,8 +124,10 @@ int main()
 
 		// Zero out the gyro and turn the user to face it.
 		int n = read (fd, buff, sizeof(buff));  // read up to 100 characters if ready to read
-		zero = 360 - atof(buff) + angle;
-		degree= (360 - (atof(buff)) - zero + 90);
+		zero = atof(buff) + angle;
+		degree= (atof(buff)) - zero;
+		if(degree < 0)
+			degree += 360;
 		//sscanf(buff, "%f", &degree); 
 		printf("Buffer in: %s\n", buff);
 		printf("Degrees: %f\n\n", degree );
@@ -129,10 +138,35 @@ int main()
 		{
 			// Zero out the gyro and turn the user to face it.
 			int n = read (fd, buff, sizeof(buff));  // read up to 100 characters if ready to read
-			degree= (360 - (atof(buff)) - zero + 90);
+			degree= (atof(buff)) - zero;
+
+			if(degree < 0)
+			{
+				degree += 360;
+			}
+
+			fivepointer[fv_pt_index] = degree;
+			fv_pt_index++;
+			if(fv_pt_index >= fivepoint_size)
+			{
+				fv_pt_index = 0;
+			}
+
+			/*
+			double avg = 0.0;
+			for(int i = 0; i < fivepoint_size; i++)
+			{
+				avg += cos(fivepointer[i]*3.14/180);
+			}
+			avg = avg / fivepoint_size;
+
+			avg = acos(avg) * 180/3.14;
+			*/
 			//sscanf(buff, "%f", &degree); 
-			printf("Buffer in: %s\n", buff);
-			printf("Degrees: %f\n\n", degree);
+			//printf("Buffer in: %s\n", buff);
+			printf("Buffer val: %f\n", atof(buff));
+			printf("Degrees: %f\n", degree);
+			//printf("avg degree: %f\n", avg);
 			turn(degree);
 		}
 		printf("Result turn: %f\n\n", degree);
