@@ -6,7 +6,7 @@
 
 // This tells the program WHERE TO LOOK FOR THE SOUNDS. Currently its' the current directory
 // Currently not used, but will be soonTM
-#define BASE_SOUND_PATH		"./"
+#define BASE_SOUND_PATH		"/home/pi/projectDaredevil/sound/"
 
 #define DEBUG 0
 
@@ -96,6 +96,11 @@ void SL_LoadSound(SL_Sound *src, char *soundfile)
     ALvoid *data;
     ALsizei size;
     ALsizei freq;
+
+    int full_path_size = strlen(soundfile) + strlen(BASE_SOUND_PATH);
+    char* full_path = malloc(full_path_size + 1);
+    strcpy(full_path, BASE_SOUND_PATH);
+    strcat(full_path, soundfile);
 	
 	// For retrieving errors
 	ALenum error;
@@ -107,7 +112,8 @@ void SL_LoadSound(SL_Sound *src, char *soundfile)
 		return;
     }
     // Load test.wav
-    loadWAVFile(soundfile,&format,&data,&size,&freq);
+    loadWAVFile(full_path,&format,&data,&size,&freq);
+    free(full_path);
 
     if ((error = alGetError()) != AL_NO_ERROR)
     {

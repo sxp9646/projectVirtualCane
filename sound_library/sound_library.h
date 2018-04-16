@@ -6,9 +6,9 @@
 */
 #ifndef _OPENAL_ACCESS_H_
 #define _OPENAL_ACCESS_H_
-#include "/usr/include/AL/al.h"
-#include "/usr/include/AL/alc.h"
-#include "/usr/include/AL/alext.h"
+#include "/usr/local/include/AL/al.h"
+#include "/usr/local/include/AL/alc.h"
+#include "/usr/local/include/AL/alext.h"
 /*
 *	Some vocabulary definition:
 *		"Source" is a place where sound will emit from
