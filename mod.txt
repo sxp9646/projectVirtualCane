@@ -1,0 +1,17 @@
+sudo modprobe bcm2835-v4l2
+
+g++ -o Aruco main.cpp -lopencv_highgui -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lopencv_calib3d
+
+g++ -o capture_chair capture_chair.cpp -lopencv_highgui -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lopencv_calib3d
+
+
+g++ -o data_gather data_gather.cpp -lopencv_highgui -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lopencv_calib3d
+
+g++ -o chair_gather chair_gather.cpp -lopencv_highgui -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lopencv_calib3d
+
+
+Compile /w openal:
+
+g++ -o Aruco main.cpp -lopencv_highgui -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lopencv_calib3d libopenal.so sound_library.c
+
+g++ -o virtual_cane not_main.cpp -lopencv_highgui -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_aruco -lopencv_calib3d ../sound_library/libopenal.so sound_library.c
