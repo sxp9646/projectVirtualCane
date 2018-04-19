@@ -4,6 +4,7 @@
 #include <cmath>
 #include "OutlierDetector.hpp"
 
+#define PI (3.14)
 using namespace std;
 
 OutlierDetector::OutlierDetector()
@@ -25,7 +26,7 @@ void OutlierDetector::setAngleMode(bool mode)
     angle_mode = mode;
 }
 
-void OutlierDetector::add(double input)
+void OutlierDetector::add(Vec3f input)
 {
     data[index] = input;
     empty_ticker = 0;
@@ -53,7 +54,7 @@ bool OutlierDetector::check()
     return filled;
 }
 
-double OutlierDetector::detect()
+Vec3f OutlierDetector::detect()
 {
     int consensus_count[10];
     Vec3f consensus_avg[10];
@@ -70,8 +71,8 @@ double OutlierDetector::detect()
             Vec3f storage[10];
             storage[0] = data[i];
             
-            double error;
-            consensus_avg[i] = data[i];
+            Vec3f error;
+            //consensus_avg[i] = data[i];
             consensus_count[i] = 1;
 
             // Forward sweep for indices less than i:
@@ -80,8 +81,8 @@ double OutlierDetector::detect()
                 error = computeError(data[i], data[j]);
                 if(compareLessThan(error, error_bounds))
                 {
-                    consensus_count[i]++;
                     storage[consensus_count[i]] = data[j];
+                    consensus_count[i]++;
                 }
             }
             // Backward sweep for indices greater than i:
@@ -90,8 +91,8 @@ double OutlierDetector::detect()
                 error = computeError(data[i], data[j]);
                 if(compareLessThan(error, error_bounds))
                 {
-                    consensus_count[i]++;
                     storage[consensus_count[i]] = data[j];
+                    consensus_count[i]++;
                 }                
             }
             if(consensus_count[i] > max_consensus)
@@ -99,7 +100,7 @@ double OutlierDetector::detect()
                 max_consensus = consensus_count[i];
                 consensus_idx = i;
             }
-            consensus_avg[i] = computeAverage(storage, consensus_count);
+            consensus_avg[i] = computeAverage(storage, consensus_count[i]);
             
             /*
             cout << "Index: " << i;
@@ -135,24 +136,24 @@ Vec3f OutlierDetector::computeError(Vec3f A, Vec3f B)
 {
     Vec3f error = A - B;
     // If running angle mode, correct error computation
-    if(angle_mode == true)
+    if(angle_mode == false)
+    {
+	for(int i = 0; i < 3; i++)
+	{
+            error[i] = abs(error[i]);
+	}
+    }
+    else if(angle_mode == true)
     {
         for(int i = 0; i < 3; i++)
         {
-            if(error[i] > PI)
-            {
-                error[i] -= 2*PI;
-            }
-            else if(error[i] < -PI)
-            {
-                error[i] += 2*PI;
-            }
+	    error[i] = acos(cos(A[i]) * cos(B[i]) + sin(A[i]) * sin(B[i]));
         }
     }
-    return abs(error);
+    return error;
 }
 
-Vec3f OutlierDetector::computeAverage(Vec3f input[], int count)
+Vec3f OutlierDetector::computeAverage(Vec3f *input, int count)
 {
     Vec3f average;
     if(angle_mode == false)
@@ -172,11 +173,14 @@ Vec3f OutlierDetector::computeAverage(Vec3f input[], int count)
         {
             for(int j = 0; j < 3; j++)
             {
-                x_sum += cos(input[i][j]);
-                y_sum += sin(input[i][j]);
+                x_sum[j] += cos(input[i][j]);
+                y_sum[j] += sin(input[i][j]);
             }
         }
-        average = atan2(y_sum, x_sum);
+	for(int j = 0; j < 3; j++)
+	{
+            average[j] = atan2(y_sum[j], x_sum[j]);
+	}
     }
     return average;
 }
@@ -184,29 +188,42 @@ Vec3f OutlierDetector::computeAverage(Vec3f input[], int count)
 int main()
 {
     
-    // Main method needs to be modified
-    /*
-    OutlierDetector suhail;
-    suhail.error_bounds = 7;
-    suhail.setAngleMode(true);
+	// Main method needs to be modified
+
+	OutlierDetector suhail;
+	suhail.error_bounds = 10.0 * PI / 180.0;
+	suhail.setAngleMode(true);
 	string line;
-	ifstream datafile ("test_data.csv");
+	const char *delim = ",";
+
+	ifstream datafile ("test_data_vec3f.csv");
 	if (datafile.is_open())	
 	{
 		int i = 0;
 		while (getline(datafile, line))
 		{
-            suhail.add(atof(line.c_str()));
-            if(suhail.check() == true)
-            {
-                cout << suhail.detect() << "\n";
-                //datafile.close();
-                //return 0;
-            }
-            i++;
+			Vec3f data_in;
+			// Split string
+			// to avoid modifying original string
+			// first duplicate the original string and return a char pointer then free the memory
+			char * dup = strdup(line.c_str());
+			char * token = strtok(dup, delim);
+			int j = 0;
+			while(token != NULL)
+			{
+				data_in[j] = atof(token) * PI / 180;
+				token = strtok(NULL, delim);
+				j++;
+			}
+			cout << (data_in * 180 / PI)<< "\t\t\t";
+			suhail.add(data_in);
+			if(suhail.check() == true)
+			{
+				cout << suhail.detect() * 180 / PI;
+			}
+			cout << "\n";
 		}
 		datafile.close();
 	}
-    return 0;
-    */
+	return 0;
 }

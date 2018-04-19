@@ -1,5 +1,5 @@
-#include <Vector>
-#define Vec3f std::Vector<float,3>
+#include "opencv2/core.hpp"
+using namespace cv;
 
 class OutlierDetector
 {
@@ -23,5 +23,5 @@ class OutlierDetector
         
     bool compareLessThan(Vec3f A, double B);
     Vec3f computeError(Vec3f A, Vec3f B);
-    Vec3f computeAverage(Vec3f input[], int count);
+    Vec3f computeAverage(Vec3f *input, int count);
 };

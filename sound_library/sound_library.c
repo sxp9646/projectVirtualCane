@@ -98,7 +98,7 @@ void SL_LoadSound(SL_Sound *src, char *soundfile)
     ALsizei freq;
 
     int full_path_size = strlen(soundfile) + strlen(BASE_SOUND_PATH);
-    char* full_path = malloc(full_path_size + 1);
+    char* full_path = (char *) malloc(full_path_size + 1);
     strcpy(full_path, BASE_SOUND_PATH);
     strcat(full_path, soundfile);
 	
