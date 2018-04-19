@@ -56,6 +56,7 @@ bool OutlierDetector::check()
 
 Vec3f OutlierDetector::detect()
 {
+    double bounds_temp = error_bounds;
     int consensus_count[10];
     Vec3f consensus_avg[10];
 
@@ -79,7 +80,7 @@ Vec3f OutlierDetector::detect()
             for(int j = 0; j < i; j++)
             {
                 error = computeError(data[i], data[j]);
-                if(compareLessThan(error, error_bounds))
+                if(compareLessThan(error, bounds_temp))
                 {
                     storage[consensus_count[i]] = data[j];
                     consensus_count[i]++;
@@ -89,7 +90,7 @@ Vec3f OutlierDetector::detect()
             for(int j = 9; j > i; j--)
             {
                 error = computeError(data[i], data[j]);
-                if(compareLessThan(error, error_bounds))
+                if(compareLessThan(error, bounds_temp))
                 {
                     storage[consensus_count[i]] = data[j];
                     consensus_count[i]++;
@@ -101,16 +102,9 @@ Vec3f OutlierDetector::detect()
                 consensus_idx = i;
             }
             consensus_avg[i] = computeAverage(storage, consensus_count[i]);
-            
-            /*
-            cout << "Index: " << i;
-            cout << " Consensus Count: " << consensus_count[i];
-            cout << " Consensus Count: " << consensus_avg[i];
-            cout << "\n";
-            */
         }
         
-        error_bounds = error_bounds * 2;
+        bounds_temp = bounds_temp * 2;
     }
     return consensus_avg[consensus_idx];
 }
@@ -222,6 +216,7 @@ int main()
 				cout << suhail.detect() * 180 / PI;
 			}
 			cout << "\n";
+			i++;
 		}
 		datafile.close();
 	}
