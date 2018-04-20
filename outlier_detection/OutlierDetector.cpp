@@ -40,11 +40,14 @@ void OutlierDetector::add(Vec3f input)
 
 void OutlierDetector::empty()
 {
-    empty_ticker++;
-    if(empty_ticker > 5)
+    if(empty_ticker >= 5)
     {
         filled = false;
         index = 0;
+    }
+    else
+    {
+        empty_ticker++;
     }
 }
 
@@ -56,20 +59,37 @@ bool OutlierDetector::check()
 
 Vec3f OutlierDetector::detect()
 {
+    int SIZE;
+    if(filled == true)
+    {
+        SIZE = 10;
+    }
+    else if(index > 1)
+    {
+        SIZE = index;
+    }
+    else if(index == 1)
+    {
+        return data[0];
+    }
+    else
+    {
+        return {0,0,0};
+    }
     double bounds_temp = error_bounds;
-    int consensus_count[10];
-    Vec3f consensus_avg[10];
+    int consensus_count[SIZE];
+    Vec3f consensus_avg[SIZE];
 
     int max_consensus = 1;
     int consensus_idx = 0;
 
-    while(max_consensus < 6)
+    while(max_consensus <= (SIZE / 2))
     {
 
         // Iterate through every element of the array
-        for(int i = 0; i < 10; i++)
+        for(int i = 0; i < SIZE; i++)
         {
-            Vec3f storage[10];
+            Vec3f storage[SIZE];
             storage[0] = data[i];
             
             Vec3f error;
@@ -87,7 +107,7 @@ Vec3f OutlierDetector::detect()
                 }
             }
             // Backward sweep for indices greater than i:
-            for(int j = 9; j > i; j--)
+            for(int j = (SIZE - 1); j > i; j--)
             {
                 error = computeError(data[i], data[j]);
                 if(compareLessThan(error, bounds_temp))
