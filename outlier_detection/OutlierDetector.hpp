@@ -1,10 +1,12 @@
 #include "opencv2/core.hpp"
+#define PI (3.14)
+#define DATA_SIZE 20
 using namespace cv;
 
 class OutlierDetector
 {
     public:
-        Vec3f data[10];
+        Vec3f data[DATA_SIZE];
         double error_bounds;
         
         OutlierDetector();       // constructor

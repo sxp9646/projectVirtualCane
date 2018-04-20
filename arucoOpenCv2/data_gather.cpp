@@ -210,6 +210,9 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 
 			arucoFile.close();
 		}
+		
+		parameters.cornerRefinementMethod = cv::aruco::CORNER_REFINE_CONTOUR;
+		parameters.adaptiveThreshConstant=true;
 
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);

@@ -4,7 +4,6 @@
 #include <cmath>
 #include "OutlierDetector.hpp"
 
-#define PI (3.14)
 using namespace std;
 
 OutlierDetector::OutlierDetector()
@@ -31,7 +30,7 @@ void OutlierDetector::add(Vec3f input)
     data[index] = input;
     empty_ticker = 0;
     index++;
-    if(index >= 10)
+    if(index >= DATA_SIZE)
     {
         filled = true;
         index = 0;
@@ -62,7 +61,7 @@ Vec3f OutlierDetector::detect()
     int SIZE;
     if(filled == true)
     {
-        SIZE = 10;
+        SIZE = DATA_SIZE;
     }
     else if(index > 1)
     {
@@ -199,6 +198,7 @@ Vec3f OutlierDetector::computeAverage(Vec3f *input, int count)
     return average;
 }
 
+/*
 int main()
 {
     
@@ -231,14 +231,14 @@ int main()
 			}
 			cout << (data_in * 180 / PI)<< "\t\t\t";
 			suhail.add(data_in);
-			if(suhail.check() == true)
-			{
+			//if(suhail.check() == true)
+			//{
 				cout << suhail.detect() * 180 / PI;
-			}
+			//}
 			cout << "\n";
 			i++;
 		}
 		datafile.close();
 	}
 	return 0;
-}
+}*/

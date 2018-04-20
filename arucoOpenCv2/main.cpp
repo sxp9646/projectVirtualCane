@@ -174,11 +174,20 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	SL_InitSource(&source);
 	SL_LoadSound(&source,(char *)"water.wav");
 
+	SL_TurnUser(0.0, 0.0, 1.0, 0.0, -1.0, 0.0);
+
 	// THIS SHOULDN'T BE HERE:
 	// ARUCO TO CHAIR MATRIX DECLARATION
 	// ITS HARD CODED RIGHT NOW.  PLS NO TOUCH
 
-	Mat aTc = atcLoad(1);
+	//Vec<(Mat_<double>(4,4), 2> aTc;
+	Mat aTc[5];
+	bool valid_aTc[5];
+	for(int i = 0; i < 5; i++)
+	{ 
+		aTc[i] = atcLoad(i);
+		valid_aTc[i] = (aTc[i].at<double>(3,0) == 0);
+	}
 /*
 	Mat aTc = (Mat_<double>(4,4) << 	0.9997117529847183, 0.0235872892847791, 0.004477803972616208, -0.8314545258739204,
 									0.02365261592652019, -0.9996055232263049, -0.01514436183197265, -0.4207642985200173,
@@ -226,27 +235,37 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 		if (!vid.read(frame)) {
 			break;
 		}
+
+		parameters.cornerRefinementMethod = cv::aruco::CORNER_REFINE_CONTOUR;
+		parameters.adaptiveThreshConstant=true;
+
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
 
 		for (int i = 0; i < markerIds.size(); i++) {
-			aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
+			aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], 0.1f); // arucoSquareDimension //0.0235f
 
 			cout << markerIds[i] << ": ";
 			cv::Mat expected;
 			cv::Rodrigues(rotationVectors[i], expected);
 
-			if(markerIds[i] == 1)
+			if((markerIds[i] == 1) || (markerIds[i] == 0))
 			{	
 
-				expected = fivePointAverage(expected);
+				//expected = fivePointAverage(expected);
 				pTa = (Mat_<double>(4,4) << 	expected.at<double>(0,0), expected.at<double>(0,1), expected.at<double>(0,2), translationVectors[i][0],
 											expected.at<double>(1,0), expected.at<double>(1,1), expected.at<double>(1,2), translationVectors[i][1],
 											expected.at<double>(2,0), expected.at<double>(2,1), expected.at<double>(2,2), translationVectors[i][2],
 											0, 0, 0, 1);
-				pTc = pTa * aTc;
-				//cout << "PTC: \n";
-				//cout << pTc << "\n";
+				pTc = pTa * aTc[markerIds[i]];
+				
+				cout << "PTA: \n";
+				cout << pTa << "\n";
+				cout << "ATC: \n";
+				cout << aTc[markerIds[i]] << "\n";
+				cout << "PTC: \n";
+				cout << pTc << "\n";
+				
 
 				Vec<double,3> chair_pos;
 				chair_pos[0] = pTc.at<double>(0, 3);
@@ -254,9 +273,9 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 				chair_pos[2] = pTc.at<double>(2, 3);
 
 				//chair_pos = fivePointAverage(chair_pos);
-				source.x = pTc.at<double>(0, 3);
-				source.y = pTc.at<double>(1, 3);
-				source.z = pTc.at<double>(2, 3);
+				source.x = translationVectors[i][0]; //pTc.at<double>(0, 3);
+				source.y = translationVectors[i][1]; //pTc.at<double>(1, 3);
+				source.z = translationVectors[i][2]; //pTc.at<double>(2, 3);
 				SL_PlaceSound(&source);
 				SL_PlaySound(&source, 1, 0);
 
