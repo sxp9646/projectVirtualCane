@@ -219,7 +219,8 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
     OutlierDetector marker_filter[MAX_MARKERS];
     OutlierDetector chair_consensus;
     OutlierDetector chair_filter;
-    
+
+    chair_filter.error_bounds = 0.05;
     for(int i = 0; i < MAX_MARKERS; i++)
     {
         // Set marker filter to behave in angle mode and set error bounds to 10º
@@ -282,7 +283,6 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
                 // and time
                 // and willpower
                 // S.B.
-                aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 
                 cout << markerIds[i] << ": ";
                 cv::Mat expected;
@@ -292,6 +292,8 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
                 marker_filter[markerIds[i]].add(eulerAngles);
                 Vec3f filtered_rotation = marker_filter[markerIds[i]].detect();
                 expected = eulerAnglesToRotationMatrix(filtered_rotation);
+                cv::Rodrigues(expected, rotationVectors[i]);
+                aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 
 			    //expected = fivePointAverage(expected);
 			    pTa = (Mat_<double>(4,4) << 	expected.at<double>(0,0), expected.at<double>(0,1), expected.at<double>(0,2), translationVectors[i][0],
