@@ -208,6 +208,12 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
     Mat aTc[MAX_MARKERS];
     OutlierDetector marker_filter[MAX_MARKERS];
 	Vec3f eulerAngles;
+    for(int i = 0; i < MAX_MARKERS; i++)
+    {
+        // Set marker filter to behave in angle mode and set error bounds to 10º
+        marker_filter[i].setAngleMode(true);
+        marker_filter[i].error_bounds = 5.0 * PI / 180.0;
+    }
 
 	vector<int> markerIds;
 	vector<vector<Point2f>> markerCorners, rejectedCandidates;

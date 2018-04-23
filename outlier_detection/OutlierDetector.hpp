@@ -6,10 +6,11 @@ using namespace cv;
 class OutlierDetector
 {
     public:
-        Vec3f data[DATA_SIZE];
+        Vec3f *data;
         double error_bounds;
 
         OutlierDetector();       // constructor
+        OutlierDetector(int max_size);
         ~OutlierDetector();
 
         void setAngleMode(bool mode);
@@ -19,6 +20,7 @@ class OutlierDetector
         int count();
         Vec3f detect();
     private:
+        int size;
         int index;
         int empty_ticker;
         bool filled;
