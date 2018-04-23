@@ -209,10 +209,10 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 
 	SL_Init();
 	SL_InitSource(&source);
-	SL_LoadSound(&source,(char *)"water.wav");
+	SL_LoadSound(&source,(char *)"test.wav");
 
 	// ITS HARD CODED RIGHT NOW.  PLS NO TOUCH
-    const int MAX_MARKERS = 5;
+    const int MAX_MARKERS = 15;
 
     bool valid_marker[MAX_MARKERS]; 
     Mat aTc[MAX_MARKERS];
@@ -258,6 +258,9 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 		if (!vid.read(frame)) {
 			break;
 		}
+		parameters.cornerRefinementMethod = cv::aruco::CORNER_REFINE_CONTOUR;
+		parameters.adaptiveThreshConstant=true;
+
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
         
@@ -268,7 +271,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
         {
             markerSeen[i] = i;
         }
-        for(int i = 0 ; i < 7; i++)
+        for(int i = 0 ; i < 10; i++)
             chair_consensus.empty();
 
 		for (int i = 0; i < markerIds.size(); i++)
@@ -307,6 +310,11 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 			    chair_pos[1] = pTc.at<double>(1, 3);
 			    chair_pos[2] = pTc.at<double>(2, 3);
 
+                // Add past chair data to the consensus algorithm
+                if(chair_filter.count() > 0)
+                {
+                    chair_consensus.add(chair_filter.detect());
+                }
                 chair_consensus.add(chair_pos);
 
                 cout << "Rotation (euler) X Y Z";
@@ -337,7 +345,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             Vec3f chair_position = chair_consensus.detect();
             chair_filter.add(chair_position);
         }
-        if(chair_filter.check() == true)
+        if(chair_filter.count() >= 5)
         {
             Vec3f final_chair_pos = chair_filter.detect();
 	        cout << "Chair Offset <X Y Z>: ";

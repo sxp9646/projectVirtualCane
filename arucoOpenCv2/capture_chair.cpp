@@ -226,6 +226,9 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 		if (!vid.read(frame)) {
 			break;
 		}
+		parameters.cornerRefinementMethod = cv::aruco::CORNER_REFINE_CONTOUR;
+		parameters.adaptiveThreshConstant=true;
+
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
         int markerSeen[MAX_MARKERS];
@@ -234,7 +237,6 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             markerSeen[i] = i;
         }
 		for (int i = 0; i < markerIds.size(); i++) {
-			aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 
 			cv::Mat expected;
 
@@ -246,7 +248,8 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             marker_filter[markerIds[i]].add(eulerAngles);
             Vec3f filtered_rotation = marker_filter[markerIds[i]].detect();
             expected = eulerAnglesToRotationMatrix(filtered_rotation);
-
+            cv::Rodrigues(expected, rotationVectors[i]);
+            aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 			// This matrix may not be the correct representation of the kinematics matrix that we were assuming we had when we (josh) did the math
 			Mat cTa = (Mat_<double>(4,4) << 	expected.at<double>(0,0), expected.at<double>(0,1), expected.at<double>(0,2), translationVectors[i][0],
 										expected.at<double>(1,0), expected.at<double>(1,1), expected.at<double>(1,2), translationVectors[i][1],

@@ -39,7 +39,7 @@ void OutlierDetector::add(Vec3f input)
 
 void OutlierDetector::empty()
 {
-    if(empty_ticker >= 5)
+    if(empty_ticker >= 8)
     {
         filled = false;
         index = 0;
@@ -54,6 +54,18 @@ void OutlierDetector::empty()
 bool OutlierDetector::check()
 {
     return filled;
+}
+
+int OutlierDetector::count()
+{
+    if(filled == true)
+    {
+        return DATA_SIZE;
+    }
+    else
+    {
+        return index;
+    }
 }
 
 Vec3f OutlierDetector::detect()
