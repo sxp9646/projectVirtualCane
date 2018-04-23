@@ -21,8 +21,8 @@ void dataWrite(Vec3d translation)
 	ofstream arucoFile;
 	arucoFile.open ("test_data.txt", std::ios_base::app);
 	// File format:
-	// translation (meters), rotation (euler angles):
-	// x, y, z, x, y, z
+	// translation to chair (meters):
+	// x, y, z
 	for(int i = 0; i < 3; i++)
 	{
 		arucoFile <<translation[i];
@@ -34,12 +34,6 @@ void dataWrite(Vec3d translation)
 		{
 			arucoFile << "\n";
 		}
-	}
-
-	for(int j = 0; j < 3; j++)
-	{
-		arucoFile <<rotation[j];
-
 	}
 
 	arucoFile.close();
@@ -232,14 +226,16 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 				//cout << "PTC: \n";
 				//cout << pTc << "\n";
 
-				Vec<double,3> chair_pos;
+				Vec3d chair_pos;
 				chair_pos[0] = pTc.at<double>(0, 3);
 				chair_pos[1] = pTc.at<double>(1, 3);
 				chair_pos[2] = pTc.at<double>(2, 3);
 
+				 dataWrite(chair_pos);
+
 				//chair_pos = fivePointAverage(chair_pos);
 				cout << "Chair Offset <X Y Z>: ";
-				cout << chair_pos;
+				cout << chair_pos <<"\n";
 			}
 		
 		}

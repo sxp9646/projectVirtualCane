@@ -5,6 +5,7 @@
 #include "opencv2/aruco.hpp"
 #include "opencv2/calib3d.hpp"
 
+#include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -16,22 +17,17 @@ const float calibrationSquareDimension = 0.0251f; //meters
 const float arucoSquareDimension = .137f; //meters
 const Size chessboardDimensions = Size(9, 6);
 
-void dataWrite(Vec3d translation, Vec3f rotation)
+void dataWrite(Vec3d translation)
 {
 	ofstream arucoFile;
 	arucoFile.open ("test_data.txt", std::ios_base::app);
 	// File format:
-	// translation (meters), rotation (euler angles):
-	// x, y, z, x, y, z
+	// translation to chair (meters):
+	// x, y, z
 	for(int i = 0; i < 3; i++)
 	{
-		arucoFile <<translation[i] << ",";
-	}
-
-	for(int j = 0; j < 3; j++)
-	{
-		arucoFile <<rotation[j];
-		if(j < 2)
+		arucoFile <<translation[i];
+		if(i < 2)
 		{
 			arucoFile << ",";
 		}
@@ -101,6 +97,38 @@ Mat atcLoad(int markerId)
 	}
 }
 
+// This code was definitely not taken from https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+// Calculates rotation matrix given euler angles.
+Mat eulerAnglesToRotationMatrix(Vec3f &theta)
+{
+    // Calculate rotation about x axis
+    Mat R_x = (Mat_<double>(3,3) <<
+               1,       0,              0,
+               0,       cos(theta[0]),   -sin(theta[0]),
+               0,       sin(theta[0]),   cos(theta[0])
+               );
+     
+    // Calculate rotation about y axis
+    Mat R_y = (Mat_<double>(3,3) <<
+               cos(theta[1]),    0,      sin(theta[1]),
+               0,               1,      0,
+               -sin(theta[1]),   0,      cos(theta[1])
+               );
+     
+    // Calculate rotation about z axis
+    Mat R_z = (Mat_<double>(3,3) <<
+               cos(theta[2]),    -sin(theta[2]),      0,
+               sin(theta[2]),    cos(theta[2]),       0,
+               0,               0,                  1);
+     
+     
+    // Combined rotation matrix
+    Mat R = R_z * R_y * R_x;
+     
+    return R;
+ 
+}
+
 // Calculates rotation matrix to euler angles
 // The result is the same as MATLAB except the order
 // of the euler angles ( x and z are swapped ).
@@ -167,15 +195,34 @@ void getChessboardCorners(vector<Mat> images, vector<vector<Point2f>>& allFoundC
 
 int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficients, float arucoSquareDimensions){
 	Mat frame;
-
-	// We probably actually have cTa, by inverting it we're praying to the powers above that
-	// it possibly will become aTc without having to do any dreaded trigonometry.
-	// The results are still unclear at this time 3/24/2018
-	// Two more rosaries are in order
-
 	Mat pTa;
 	Mat pTc;
 	Vec3f eulerAngles;
+
+    const int MAX_MARKERS = 5;
+
+    bool valid_marker[MAX_MARKERS]; 
+    Mat aTc[MAX_MARKERS];
+    OutlierDetector marker_filter[MAX_MARKERS];
+    OutlierDetector chair_consensus;
+    OutlierDetector chair_filter;
+    
+    chair_filter.error_bounds = 0.05;
+    for(int i = 0; i < MAX_MARKERS; i++)
+    {
+        // Set marker filter to behave in angle mode and set error bounds to 10º
+        marker_filter[i].setAngleMode(true);
+        marker_filter[i].error_bounds = 10.0 * PI / 180.0;
+        aTc[i] = atcLoad(i);
+        if(aTc[i].at<double>(3,0) == 1)
+        {
+            valid_marker[i] = false;
+        }
+        else
+        {
+            valid_marker[i] = true;
+        }
+    }
 
 	vector<int> markerIds;
 	vector<vector<Point2f>> markerCorners, rejectedCandidates;
@@ -210,31 +257,93 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 
 			arucoFile.close();
 		}
-		
-		parameters.cornerRefinementMethod = cv::aruco::CORNER_REFINE_CONTOUR;
-		parameters.adaptiveThreshConstant=true;
 
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
 
-		for (int i = 0; i < markerIds.size(); i++) {
-			aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
-			if(markerIds[i] == 2 && data_out == true)
-			{	
-				cv::Mat expected;
-				cv::Rodrigues(rotationVectors[i], expected);
+        // Used to figure out which markers were not seen.  Markers seen will mark their respective
+        // indices as "-1" as a flag to denote that they were seen and accounted for in the chair position thingee
+        int markerSeen[MAX_MARKERS];
+        for(int i = 0; i < MAX_MARKERS; i++)
+        {
+            markerSeen[i] = i;
+        }
+        for(int i = 0 ; i < 7; i++)
+        {
+            chair_consensus.empty();
+        }
 
-				eulerAngles = rotationMatrixToEulerAngles(expected) * 180 / 3.14159;
 
-				dataWrite(translationVectors[i], eulerAngles);
-				cout << markerIds[i] << ": ";
-				cout << "Rotation X Y Z";
-				cout << eulerAngles;
-				cout << "\nTranslation X Y Z: ";
-				cout << translationVectors[i] << "\n\n";
-			}
-		
+		for (int i = 0; i < markerIds.size(); i++) 
+        {
+			if(markerIds[i] < MAX_MARKERS && valid_marker[markerIds[i]] == true)		
+            {
+                markerSeen[markerIds[i]] = -1;
+                
+                // I'm really hoping that performing the angular filter on the rodrigues rotation vector will actually work out
+                // I have absolutely no reason to think this, and it's basically just blind faith at this point
+                // simply because we're running out of options
+                // and time
+                // and willpower
+                // S.B.
+                cv::Mat expected;
+                cv::Rodrigues(rotationVectors[i], expected);
+
+                eulerAngles = rotationMatrixToEulerAngles(expected);
+                marker_filter[markerIds[i]].add(eulerAngles);
+
+                Vec3f filtered_rotation = marker_filter[markerIds[i]].detect();
+
+                expected = eulerAnglesToRotationMatrix(filtered_rotation);
+                cv::Rodrigues(expected, rotationVectors[i]);
+
+                aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
+
+			    pTa = (Mat_<double>(4,4) << 	expected.at<double>(0,0), expected.at<double>(0,1), expected.at<double>(0,2), translationVectors[i][0],
+										    expected.at<double>(1,0), expected.at<double>(1,1), expected.at<double>(1,2), translationVectors[i][1],
+										    expected.at<double>(2,0), expected.at<double>(2,1), expected.at<double>(2,2), translationVectors[i][2],
+										    0, 0, 0, 1);
+			    pTc = pTa * aTc[markerIds[i]];
+
+                Vec3f chair_pos;
+			    chair_pos[0] = pTc.at<double>(0, 3);
+			    chair_pos[1] = pTc.at<double>(1, 3);
+			    chair_pos[2] = pTc.at<double>(2, 3);
+
+                chair_consensus.add(chair_pos);
+            }
 		}
+        int not_seen = 0;
+        for(int i = 0; i < MAX_MARKERS; i++)
+        {
+            if(markerSeen[i] != -1)
+            {
+                marker_filter[i].empty();
+                not_seen++;
+            }
+        }
+
+        if(not_seen == MAX_MARKERS)
+        {
+            chair_filter.empty();
+        }
+        else
+        {
+            Vec3f chair_position = chair_consensus.detect();
+            chair_filter.add(chair_position);
+        }
+        if(chair_filter.check() == true)
+        {
+            Vec3f final_chair_pos = chair_filter.detect();
+            if(data_out == true)
+            {
+	            cout << "Chair Offset <X Y Z>: ";
+	            cout << final_chair_pos;
+                cout << "\n";
+                dataWrite(final_chair_pos);
+            }
+        }
+
 		imshow("Webcam", frame);
 		//if (waitKey(30) >= 0) continue;
 	}

@@ -5,6 +5,7 @@
 #include "opencv2/aruco.hpp"
 #include "opencv2/calib3d.hpp"
 
+#include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
 #include "sound_library.h"
 #include <sstream>
 #include <iostream>
@@ -101,6 +102,38 @@ Mat atcLoad(int markerId)
 	}
 }
 
+// This code was definitely not taken from https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+// Calculates rotation matrix given euler angles.
+Mat eulerAnglesToRotationMatrix(Vec3f &theta)
+{
+    // Calculate rotation about x axis
+    Mat R_x = (Mat_<double>(3,3) <<
+               1,       0,              0,
+               0,       cos(theta[0]),   -sin(theta[0]),
+               0,       sin(theta[0]),   cos(theta[0])
+               );
+     
+    // Calculate rotation about y axis
+    Mat R_y = (Mat_<double>(3,3) <<
+               cos(theta[1]),    0,      sin(theta[1]),
+               0,               1,      0,
+               -sin(theta[1]),   0,      cos(theta[1])
+               );
+     
+    // Calculate rotation about z axis
+    Mat R_z = (Mat_<double>(3,3) <<
+               cos(theta[2]),    -sin(theta[2]),      0,
+               sin(theta[2]),    cos(theta[2]),       0,
+               0,               0,                  1);
+     
+     
+    // Combined rotation matrix
+    Mat R = R_z * R_y * R_x;
+     
+    return R;
+ 
+}
+
 // Calculates rotation matrix to euler angles
 // The result is the same as MATLAB except the order
 // of the euler angles ( x and z are swapped ).
@@ -171,6 +204,9 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	//Mat atc_inv = aTc.t() * aTc;
 	//atc_inv = atc_inv.inv() * aTc.t();
 
+    const int MAX_MARKERS = 50;
+    Mat aTc[MAX_MARKERS];
+    OutlierDetector marker_filter[MAX_MARKERS];
 	Vec3f eulerAngles;
 
 	vector<int> markerIds;
@@ -192,32 +228,67 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 		}
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
-
+        int markerSeen[MAX_MARKERS];
+        for(int i = 0; i < MAX_MARKERS; i++)
+        {
+            markerSeen[i] = i;
+        }
 		for (int i = 0; i < markerIds.size(); i++) {
 			aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 
-			cout << markerIds[i] << ": ";
 			cv::Mat expected;
+
+			// Would like to see exactly what the output rotation matrix is here.
 			cv::Rodrigues(rotationVectors[i], expected);
 
+			// Retard route: Convert the whole rotation matrix into euler angles, and then convert back into a known rotation matrix (around y? I guess?)
+            eulerAngles = rotationMatrixToEulerAngles(expected);
+            marker_filter[markerIds[i]].add(eulerAngles);
+            Vec3f filtered_rotation = marker_filter[markerIds[i]].detect();
+            expected = eulerAnglesToRotationMatrix(filtered_rotation);
+
+			// This matrix may not be the correct representation of the kinematics matrix that we were assuming we had when we (josh) did the math
 			Mat cTa = (Mat_<double>(4,4) << 	expected.at<double>(0,0), expected.at<double>(0,1), expected.at<double>(0,2), translationVectors[i][0],
 										expected.at<double>(1,0), expected.at<double>(1,1), expected.at<double>(1,2), translationVectors[i][1],
 										expected.at<double>(2,0), expected.at<double>(2,1), expected.at<double>(2,2), translationVectors[i][2],
 										0, 0, 0, 1);
-			atcWrite(markerIds[i], cTa.inv());
+            aTc[markerIds[i]] = cTa.inv();
 		
-			cout << "\n";
+
 			eulerAngles = rotationMatrixToEulerAngles(expected) * 180 / 3.14;
 
+            if(marker_filter[markerIds[i]].check() == true)
+            {
+                cout << "Marker Ready: " << markerIds[i] << "\n";
+            }
+            /*
 			cout << "Rotation X Y Z";
 			cout << eulerAngles;
 			cout << "\nTranslation X Y Z: ";
 			cout << translationVectors[i] << "\n\n";
+            */
 		}
+        // Loop through every marker that was not seen:
+        for(int i = 0; i < MAX_MARKERS; i++)
+        {
+            if(markerSeen[i] != -1)
+            {
+                marker_filter[i].empty();
+            }
+        }
 		imshow("Webcam", frame);
 		char character = waitKey(1000 / 20);
 
 		switch (character) {
+		case ' ':
+    		for (int i = 0; i < markerIds.size(); i++) {
+                if(marker_filter[markerIds[i]].check() == true)
+                {
+        			atcWrite(markerIds[i], aTc[markerIds[i]]);
+                    cout << "Saved Aruco[" << markerIds[i] << "].\n";
+                }
+            }
+            break;
 		// Return character
 		case 13:
 			//exit
