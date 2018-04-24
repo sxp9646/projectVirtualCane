@@ -8,6 +8,19 @@ using namespace std;
 
 OutlierDetector::OutlierDetector()
 {
+    size = DATA_SIZE;
+    data = (Vec3f *) malloc(sizeof(Vec3f) * size);
+    error_bounds = 0.10;
+    index = 0;
+    empty_ticker = 0;
+    filled = false;
+    angle_mode = false;
+}
+
+OutlierDetector::OutlierDetector(int max_size)
+{
+    size = max_size;
+    data = (Vec3f *) malloc(sizeof(Vec3f) * size);
     error_bounds = 0.10;
     index = 0;
     empty_ticker = 0;
@@ -17,6 +30,7 @@ OutlierDetector::OutlierDetector()
 
 OutlierDetector::~OutlierDetector()
 {
+    free(data);
     // You should probably clean something up here.  ./shrug
 }
 
@@ -30,7 +44,7 @@ void OutlierDetector::add(Vec3f input)
     data[index] = input;
     empty_ticker = 0;
     index++;
-    if(index >= DATA_SIZE)
+    if(index >= size)
     {
         filled = true;
         index = 0;
@@ -39,7 +53,7 @@ void OutlierDetector::add(Vec3f input)
 
 void OutlierDetector::empty()
 {
-    if(empty_ticker >= 5)
+    if(empty_ticker >= 8)
     {
         filled = false;
         index = 0;
@@ -56,16 +70,28 @@ bool OutlierDetector::check()
     return filled;
 }
 
-Vec3f OutlierDetector::detect()
+int OutlierDetector::count()
 {
-    int SIZE;
     if(filled == true)
     {
-        SIZE = DATA_SIZE;
+        return size;
+    }
+    else
+    {
+        return index;
+    }
+}
+
+Vec3f OutlierDetector::detect()
+{
+    int current_size;
+    if(filled == true)
+    {
+        current_size = size;
     }
     else if(index > 1)
     {
-        SIZE = index;
+        current_size = index;
     }
     else if(index == 1)
     {
@@ -76,19 +102,19 @@ Vec3f OutlierDetector::detect()
         return {0,0,0};
     }
     double bounds_temp = error_bounds;
-    int consensus_count[SIZE];
-    Vec3f consensus_avg[SIZE];
+    int consensus_count[current_size];
+    Vec3f consensus_avg[current_size];
 
     int max_consensus = 1;
     int consensus_idx = 0;
 
-    while(max_consensus <= (SIZE / 2))
+    while(max_consensus <= (current_size / 2))
     {
 
         // Iterate through every element of the array
-        for(int i = 0; i < SIZE; i++)
+        for(int i = 0; i < current_size; i++)
         {
-            Vec3f storage[SIZE];
+            Vec3f storage[current_size];
             storage[0] = data[i];
             
             Vec3f error;
@@ -106,7 +132,7 @@ Vec3f OutlierDetector::detect()
                 }
             }
             // Backward sweep for indices greater than i:
-            for(int j = (SIZE - 1); j > i; j--)
+            for(int j = (current_size - 1); j > i; j--)
             {
                 error = computeError(data[i], data[j]);
                 if(compareLessThan(error, bounds_temp))

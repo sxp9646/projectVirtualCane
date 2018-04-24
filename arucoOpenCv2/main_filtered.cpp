@@ -204,21 +204,30 @@ void getChessboardCorners(vector<Mat> images, vector<vector<Point2f>>& allFoundC
 
 int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficients, float arucoSquareDimensions){
 	Mat frame;
-	SL_Sound source;
+	SL_Sound source, arrival_source;
 	//initFivePointAverage();
 
 	SL_Init();
 	SL_InitSource(&source);
-	SL_LoadSound(&source,(char *)"water.wav");
+    SL_InitSource(&arrival_source);
+	SL_LoadSound(&source,(char *)"test.wav");
+    SL_LoadSound(&arrival_source, (char *) "airhorn.wav");
+	SL_TurnUser(    0.0, 0.0, 1.0, 
+        					    0.0, 1.0, 0.0);
+
+    arrival_source.x = 0;
+    arrival_source.y = 0;
+    arrival_source.z = 2;
+    SL_PlaceSound(&arrival_source);
 
 	// ITS HARD CODED RIGHT NOW.  PLS NO TOUCH
-    const int MAX_MARKERS = 5;
+    const int MAX_MARKERS = 15;
 
     bool valid_marker[MAX_MARKERS]; 
     Mat aTc[MAX_MARKERS];
     OutlierDetector marker_filter[MAX_MARKERS];
     OutlierDetector chair_consensus;
-    OutlierDetector chair_filter;
+    OutlierDetector chair_filter(10);
 
     chair_filter.error_bounds = 0.05;
     for(int i = 0; i < MAX_MARKERS; i++)
@@ -258,6 +267,9 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 		if (!vid.read(frame)) {
 			break;
 		}
+		parameters.cornerRefinementMethod = cv::aruco::CORNER_REFINE_CONTOUR;
+		parameters.adaptiveThreshConstant=true;
+
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
         
@@ -268,7 +280,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
         {
             markerSeen[i] = i;
         }
-        for(int i = 0 ; i < 7; i++)
+        for(int i = 0 ; i < 10; i++)
             chair_consensus.empty();
 
 		for (int i = 0; i < markerIds.size(); i++)
@@ -284,7 +296,6 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
                 // and willpower
                 // S.B.
 
-                cout << markerIds[i] << ": ";
                 cv::Mat expected;
                 cv::Rodrigues(rotationVectors[i], expected);
 
@@ -307,14 +318,22 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 			    chair_pos[1] = pTc.at<double>(1, 3);
 			    chair_pos[2] = pTc.at<double>(2, 3);
 
+                // Add past chair data to the consensus algorithm
+                if(chair_filter.count() > 0)
+                {
+                    chair_consensus.add(chair_filter.detect());
+                }
                 chair_consensus.add(chair_pos);
 
+            /*
+                cout << markerIds[i] << ": ";
                 cout << "Rotation (euler) X Y Z";
                 cout << eulerAngles * 180 / 3.14;
                 cout << "\nRotation (euler) X Y Z";
                 cout << filtered_rotation * 180 / 3.14;
                 cout << "\nTranslation X Y Z: ";
                 cout << translationVectors[i] << "\n\n";
+            */
 			}
 		}
         // Loop through every marker that was not seen:
@@ -337,23 +356,35 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             Vec3f chair_position = chair_consensus.detect();
             chair_filter.add(chair_position);
         }
-        if(chair_filter.check() == true)
+        if(chair_filter.count() >= 3)
         {
             Vec3f final_chair_pos = chair_filter.detect();
+            /*
 	        cout << "Chair Offset <X Y Z>: ";
 	        cout << final_chair_pos;            
             cout << "\n";
+            */
             source.x = final_chair_pos[0];
             source.y = final_chair_pos[1];
             source.z = final_chair_pos[2];
             SL_PlaceSound(&source);
             SL_PlaySound(&source, 1, 0);
+            double dist = sqrt(final_chair_pos[0]*final_chair_pos[0] + final_chair_pos[2] * final_chair_pos[2]);
+            if(dist <= 0.50)
+            {
+                SL_PlaySound(&arrival_source, 1, 0);
+            }
+            else
+            {
+                SL_PlaySound(&arrival_source, 0, 0);
+            }
         }
         else
         {
             SL_PlaySound(&source, 0, 0);
+            SL_PlaySound(&arrival_source, 0, 0);
         }
-		imshow("Webcam", frame);
+		//imshow("Webcam", frame);
 		if (waitKey(30) >= 0) break;
 	}
 	return 1;
