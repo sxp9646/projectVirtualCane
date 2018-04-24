@@ -9,6 +9,9 @@
 #include "/usr/local/include/AL/al.h"
 #include "/usr/local/include/AL/alc.h"
 #include "/usr/local/include/AL/alext.h"
+
+#include "/usr/local/include/AL/efx.h"
+#include "/usr/local/include/AL/efx-presets.h"
 /*
 *	Some vocabulary definition:
 *		"Source" is a place where sound will emit from
@@ -112,6 +115,8 @@ typedef struct SL_Listener {
 // Call this function before you do anything else with this library.
 // Or else.
 void SL_Init();
+
+void SL_InitReverb();
 
 // Call this function before you even try to use a Sound_Source.
 // Please don't pass in a NULL POINTER for the structure.  If you do, it will

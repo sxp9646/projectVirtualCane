@@ -10,8 +10,13 @@
 
 #define DEBUG 0
 
+// General OPENAL stuff:
 ALCdevice   *Device  = NULL; 
 ALCcontext  *Context = NULL;
+
+// REVERB stuff:
+ALuint *uiEffectSlot = NULL;
+ALuint *uiEffect = NULL;
 
 // Helper function to load a ".wav" file out into memory
 void loadWAVFile(char *filename,  ALenum *format, ALvoid **data, ALsizei *size, ALsizei *freq);
@@ -69,6 +74,7 @@ void SL_Init()
 		exit(-1);
 	}
 }
+
 void SL_InitSource(SL_Sound *src)
 {
 	ALenum error;
@@ -85,6 +91,14 @@ void SL_InitSource(SL_Sound *src)
     {
         //DisplayALError("alGenSources 1 : ", error);
         return;
+    }
+    if(uiEffectSlot != NULL && uiEffect != NULL)
+    {
+        alSource3i(src->sourceID, AL_AUXILIARY_SEND_FILTER, *uiEffectSlot, 0, AL_FILTER_NULL);
+        if ((error = alGetError()) != AL_NO_ERROR)
+        {
+            printf("Could not attach effects to sound\n");
+        }
     }
 }
 
@@ -279,7 +293,10 @@ void SL_FreeSound(SL_Sound *src)
 			printf("Could not successfully delete buffer\n");
 		}
     }
-	
+
+    // Remove effects from sound source
+    alSource3i(src->sourceID, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+
 	alDeleteSources(1, &src->sourceID);
 	error = alGetError();
     if (error != AL_NO_ERROR)
@@ -511,4 +528,92 @@ void loadWAVFile(char *filename,  ALenum *format, ALvoid **data, ALsizei *size, 
     }
     fclose(f_ptr);
     return;
+}
+
+
+void SL_InitReverb()
+{
+    EFXEAXREVERBPROPERTIES efxReverb;
+    EAXREVERBPROPERTIES eaxRoom = EFX_REVERB_PRESET_ROOM;
+    
+    alGenAuxiliaryEffectSlots(1, uiEffectSlot);
+	if (alGetError() != AL_NO_ERROR)
+    {
+		printf("CANT DO THE REVERBS (1) :'\\n");
+        return;
+    }
+    
+    // Clear AL Error State
+    alGetError();
+
+    // Generate an Effect
+    alGenEffects(1, uiEffect);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        printf("CANT DO THE REVERBS (2) :'\\n");
+        return;
+    }
+    // Set the Effect Type
+    alEffecti(*uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        alDeleteEffects(1, puiEffect);
+        printf("CANT DO THE REVERBS (3) :'\\n");
+        return;
+    }
+    
+    alEffectf(*uiEffect, AL_EAXREVERB_DENSITY, eaxRoom.flDensity);
+    alEffectf(*uiEffect, AL_EAXREVERB_DIFFUSION, eaxRoom.flDiffusion);
+    alEffectf(*uiEffect, AL_EAXREVERB_GAIN, eaxRoom.flGain);
+    alEffectf(*uiEffect, AL_EAXREVERB_GAINHF, eaxRoom.flGainHF);
+    alEffectf(*uiEffect, AL_EAXREVERB_GAINLF, eaxRoom.flGainLF);
+    alEffectf(*uiEffect, AL_EAXREVERB_DECAY_TIME, eaxRoom.flDecayTime);
+    alEffectf(*uiEffect, AL_EAXREVERB_DECAY_HFRATIO, eaxRoom.flDecayHFRatio);
+    alEffectf(*uiEffect, AL_EAXREVERB_DECAY_LFRATIO, eaxRoom.flDecayLFRatio);
+    alEffectf(*uiEffect, AL_EAXREVERB_REFLECTIONS_GAIN, eaxRoom.flReflectionsGain);
+    alEffectf(*uiEffect, AL_EAXREVERB_REFLECTIONS_DELAY, eaxRoom.flReflectionsDelay);
+    alEffectfv(*uiEffect, AL_EAXREVERB_REFLECTIONS_PAN, eaxRoom.flReflectionsPan);
+    alEffectf(*uiEffect, AL_EAXREVERB_LATE_REVERB_GAIN, eaxRoom.flLateReverbGain);
+    alEffectf(*uiEffect, AL_EAXREVERB_LATE_REVERB_DELAY, eaxRoom.flLateReverbDelay);
+    alEffectfv(*uiEffect, AL_EAXREVERB_LATE_REVERB_PAN, eaxRoom.flLateReverbPan);
+    alEffectf(*uiEffect, AL_EAXREVERB_ECHO_TIME, eaxRoom.flEchoTime);
+    alEffectf(*uiEffect, AL_EAXREVERB_ECHO_DEPTH, eaxRoom.flEchoDepth);
+    alEffectf(*uiEffect, AL_EAXREVERB_MODULATION_TIME, eaxRoom.flModulationTime);
+    alEffectf(*uiEffect, AL_EAXREVERB_MODULATION_DEPTH, eaxRoom.flModulationDepth);
+    alEffectf(*uiEffect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, eaxRoom.flAirAbsorptionGainHF);
+    alEffectf(*uiEffect, AL_EAXREVERB_HFREFERENCE, eaxRoom.flHFReference);
+    alEffectf(*uiEffect, AL_EAXREVERB_LFREFERENCE, eaxRoom.flLFReference);
+    alEffectf(*uiEffect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, eaxRoom.flRoomRolloffFactor);
+    alEffecti(*uiEffect, AL_EAXREVERB_DECAY_HFLIMIT, eaxRoom.iDecayHFLimit);
+
+    if (alGetError() != AL_NO_ERROR)
+    {
+        printf("CANT DO THE REVERBS (4) :'\\n");
+        return;
+    }
+
+    // Load Effect into Auxiliary Effect Slot
+    alAuxiliaryEffectSloti(*uiEffectSlot, AL_EFFECTSLOT_EFFECT, *uiEffect);
+
+    // Enable (non-filtered) Send from Source to Auxiliary Effect Slot
+    alSource3i(uiSource, AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, AL_FILTER_NULL);
+
+}
+void SL_UninitReverb()
+{
+    if(uiEffectSlot != NULL)
+    {
+        // Load NULL Effect into Effect Slot
+        alAuxiliaryEffectSloti(*uiEffectSlot, AL_EFFECTSLOT_EFFECT, AL_EFFECT_NULL);
+    }
+    if(uiEffect != NULL)
+    {
+        // Delete Effect
+        alDeleteEffects(1, uiEffect);
+    }
+    if(uiEffectSlot != NULL)
+    {
+        // Delete Auxiliary Effect Slot
+        alDeleteAuxiliaryEffectSlots(1, uiEffectSlot);
+    }
 }
