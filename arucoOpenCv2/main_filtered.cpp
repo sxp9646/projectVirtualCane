@@ -6,7 +6,7 @@
 #include "opencv2/calib3d.hpp"
 
 #include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
-#include "sound_library.h"
+#include "/home/pi/projectDaredevil/sound_library/sound_library.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -210,8 +210,8 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	SL_Init();
 	SL_InitSource(&source);
     SL_InitSource(&arrival_source);
-	SL_LoadSound(&source,(char *)"test.wav");
-    SL_LoadSound(&arrival_source, (char *) "airhorn.wav");
+	SL_LoadSound(&source,(char *)"mario_jump.wav");
+    SL_LoadSound(&arrival_source, (char *) "mario_coin.wav");
 	SL_TurnUser(    0.0, 0.0, 1.0, 
         					    0.0, 1.0, 0.0);
 
@@ -260,7 +260,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	if (!vid.isOpened()) {
 		return -1;
 	}
-	namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
+	//namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
 	vector<Vec3d> rotationVectors, translationVectors;
 
 	while (true) {
@@ -370,7 +370,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             SL_PlaceSound(&source);
             SL_PlaySound(&source, 1, 0);
             double dist = sqrt(final_chair_pos[0]*final_chair_pos[0] + final_chair_pos[2] * final_chair_pos[2]);
-            if(dist <= 0.50)
+            if(dist <= 0.67)
             {
                 SL_PlaySound(&arrival_source, 1, 0);
             }
