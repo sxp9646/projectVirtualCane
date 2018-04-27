@@ -5,6 +5,7 @@
 #include "opencv2/aruco.hpp"
 #include "opencv2/calib3d.hpp"
 
+#include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
 #include "/home/pi/projectDaredevil/sound_library/sound_library.h"
 #include <sstream>
 #include <iostream>
@@ -59,6 +60,7 @@ void getChessboardCorners(vector<Mat> images, vector<vector<Point2f>>& allFoundC
 int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficients, float arucoSquareDimensions){
 	Mat frame;
 
+    OutlierDetector marker_filter[3];
 	SL_Sound source[3];
     int source_map[3] = {0, 4, 8};
     bool seen[3];
@@ -66,6 +68,8 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	SL_Init();
     for(int i = 0; i < 3; i++)
     {
+        //marker_filter[i] = OutlierDetector(10);
+        marker_filter[i].error_bounds = 0.15;
     	SL_InitSource(&source[i]);
     }
 	SL_LoadSound(&source[0],(char *)"airhorn.wav");
@@ -109,9 +113,11 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
     			if(markerIds[i] == source_map[j])
                 {
                     seen[j] = true;
-				    source[j].x = translationVectors[i][0]; //pTc.at<double>(0, 3);
-				    source[j].y = translationVectors[i][1]; //pTc.at<double>(1, 3);
-				    source[j].z = translationVectors[i][2]; //pTc.at<double>(2, 3);
+                    marker_filter[j].add(translationVectors[i]);
+                    Vec3f pos = marker_filter[j].detect();
+				    source[j].x = pos[0];
+				    source[j].y = pos[1];
+				    source[j].z = pos[2];
 				    SL_PlaceSound(&source[j]);
 				    SL_PlaySound(&source[j], 1, 0);
 			        cout << markerIds[i] << ": ";
@@ -124,7 +130,11 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
         for(int j = 0; j < 3; j++)
         {
             if(seen[j] == false)
-    		    SL_PlaySound(&source[j], 0, 0);
+            {
+                marker_filter[j].empty();
+                if(marker_filter[j].count() == 0)
+        		    SL_PlaySound(&source[j], 0, 0);
+            }
         }
 
 		imshow("Webcam", frame);
