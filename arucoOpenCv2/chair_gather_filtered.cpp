@@ -199,7 +199,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	Mat pTc;
 	Vec3f eulerAngles;
 
-    const int MAX_MARKERS = 5;
+    const int MAX_MARKERS = 24;
 
     bool valid_marker[MAX_MARKERS]; 
     Mat aTc[MAX_MARKERS];

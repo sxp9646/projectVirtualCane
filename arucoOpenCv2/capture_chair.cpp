@@ -212,7 +212,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
     {
         // Set marker filter to behave in angle mode and set error bounds to 10º
         marker_filter[i].setAngleMode(true);
-        marker_filter[i].error_bounds = 5.0 * PI / 180.0;
+        marker_filter[i].error_bounds = 10.0 * PI / 180.0;
     }
 
 	vector<int> markerIds;

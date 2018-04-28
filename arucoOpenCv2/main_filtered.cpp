@@ -221,7 +221,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
     SL_PlaceSound(&arrival_source);
 
 	// ITS HARD CODED RIGHT NOW.  PLS NO TOUCH
-    const int MAX_MARKERS = 15;
+    const int MAX_MARKERS = 24;
 
     bool valid_marker[MAX_MARKERS]; 
     Mat aTc[MAX_MARKERS];

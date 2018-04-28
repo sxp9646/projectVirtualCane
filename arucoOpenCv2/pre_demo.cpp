@@ -14,6 +14,7 @@
 using namespace std;
 using namespace cv;
 
+const int SOUND_COUNT = 1;
 const float calibrationSquareDimension = 0.0251f; //meters
 const float arucoSquareDimension = .137f; //meters
 const Size chessboardDimensions = Size(9, 6);
@@ -60,21 +61,24 @@ void getChessboardCorners(vector<Mat> images, vector<vector<Point2f>>& allFoundC
 int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficients, float arucoSquareDimensions){
 	Mat frame;
 
-    OutlierDetector marker_filter[3];
-	SL_Sound source[3];
-    int source_map[3] = {0, 4, 8};
-    bool seen[3];
+    OutlierDetector marker_filter[SOUND_COUNT];
+	SL_Sound source[SOUND_COUNT];
+	SL_Sound arrived;
+    int source_map[SOUND_COUNT] = {28};
+    bool seen[SOUND_COUNT];
 
 	SL_Init();
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < SOUND_COUNT; i++)
     {
         //marker_filter[i] = OutlierDetector(10);
         marker_filter[i].error_bounds = 0.15;
     	SL_InitSource(&source[i]);
     }
-	SL_LoadSound(&source[0],(char *)"airhorn.wav");
-	SL_LoadSound(&source[1],(char *)"test.wav");
-	SL_LoadSound(&source[2],(char *)"waterfall.wav");
+	SL_InitSource(&arrived);
+	SL_LoadSound(&source[0],(char *)"mario_jump.wav");
+    SL_LoadSound(&arrived,(char *)"mario_coin.wav");
+	/*SL_LoadSound(&source[1],(char *)"test.wav");
+	SL_LoadSound(&source[2],(char *)"waterfall.wav");*/
 
 	SL_TurnUser(0.0, 0.0, 1.0, 0.0, 1.0, 0.0);
 
@@ -90,7 +94,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	if (!vid.isOpened()) {
 		return -1;
 	}
-	namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
+	//namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
 	vector<Vec3d> rotationVectors, translationVectors;
 
 	while (true) {
@@ -103,12 +107,12 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
-        for(int j = 0; j < 3; j++)
+        for(int j = 0; j < SOUND_COUNT; j++)
             seen[j] = false;
 
 		for (int i = 0; i < markerIds.size(); i++) {
 			aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); 
-            for(int j = 0; j < 3; j++)
+            for(int j = 0; j < SOUND_COUNT; j++)
             {
     			if(markerIds[i] == source_map[j])
                 {
@@ -127,7 +131,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             }
 		}
 
-        for(int j = 0; j < 3; j++)
+        for(int j = 0; j < SOUND_COUNT; j++)
         {
             if(seen[j] == false)
             {
@@ -136,8 +140,20 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
         		    SL_PlaySound(&source[j], 0, 0);
             }
         }
+        if(marker_filter[0].count() > 0)
+        {
+            double dist = sqrt(source[0].x*source[0].x + source[0].z * source[0].z);
+            if(dist <= 0.67)
+            {
+                SL_PlaySound(&arrived, 1, 0);
+            }
+            else
+            {
+                SL_PlaySound(&arrived, 0, 0);
+            }
+        }
 
-		imshow("Webcam", frame);
+		//imshow("Webcam", frame);
 		if (waitKey(30) >= 0) break;
 	}
 	return 1;
