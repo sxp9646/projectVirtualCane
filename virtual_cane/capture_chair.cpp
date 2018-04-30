@@ -6,7 +6,6 @@
 #include "opencv2/calib3d.hpp"
 
 #include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
-#include "sound_library.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>

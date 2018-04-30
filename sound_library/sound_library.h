@@ -6,12 +6,20 @@
 */
 #ifndef _OPENAL_ACCESS_H_
 #define _OPENAL_ACCESS_H_
+
 #include "/usr/local/include/AL/al.h"
 #include "/usr/local/include/AL/alc.h"
 #include "/usr/local/include/AL/alext.h"
 
+//#include <efx.h>
+//#include <efx-presets.h>
 #include "/usr/local/include/AL/efx.h"
 #include "/usr/local/include/AL/efx-presets.h"
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /*
 *	Some vocabulary definition:
 *		"Source" is a place where sound will emit from
@@ -140,5 +148,8 @@ void SL_UpdateUser(SL_Listener *user);
 // Two destructor functions
 void SL_FreeSound(SL_Sound *src);
 void SL_Uninit();
- 
+ #if defined(__cplusplus)
+}  /* extern "C" */
+#endif
+
 #endif

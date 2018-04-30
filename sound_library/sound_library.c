@@ -4,6 +4,9 @@
 //#include <math.h>
 #include "sound_library.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
 // This tells the program WHERE TO LOOK FOR THE SOUNDS. Currently its' the current directory
 // Currently not used, but will be soonTM
 #define BASE_SOUND_PATH		"/home/pi/projectDaredevil/sound/"
@@ -14,10 +17,11 @@
 ALCdevice   *Device  = NULL; 
 ALCcontext  *Context = NULL;
 
+/*
 // REVERB stuff:
 ALuint *uiEffectSlot = NULL;
 ALuint *uiEffect = NULL;
-
+*/
 // Helper function to load a ".wav" file out into memory
 void loadWAVFile(char *filename,  ALenum *format, ALvoid **data, ALsizei *size, ALsizei *freq);
 
@@ -92,6 +96,7 @@ void SL_InitSource(SL_Sound *src)
         //DisplayALError("alGenSources 1 : ", error);
         return;
     }
+    /*
     if(uiEffectSlot != NULL && uiEffect != NULL)
     {
         alSource3i(src->sourceID, AL_AUXILIARY_SEND_FILTER, *uiEffectSlot, 0, AL_FILTER_NULL);
@@ -99,7 +104,7 @@ void SL_InitSource(SL_Sound *src)
         {
             printf("Could not attach effects to sound\n");
         }
-    }
+    }*/
 }
 
 // Loads a sound into a source
@@ -468,7 +473,7 @@ void loadWAVFile(char *filename,  ALenum *format, ALvoid **data, ALsizei *size, 
 		printf("Mallocing %ld bytes for sound\n", size_of_each_sample * num_samples);
 	}
 
-    char *sound_data = malloc(size_of_each_sample * num_samples);
+    char *sound_data = (char *) malloc(size_of_each_sample * num_samples);
     *size = size_of_each_sample * num_samples;
     if(sound_data == NULL)
     {
@@ -511,7 +516,7 @@ void loadWAVFile(char *filename,  ALenum *format, ALvoid **data, ALsizei *size, 
                 else 
                 {
 					// Resize the data - IDK why I put this here.
-                    char *temp = realloc(sound_data, (i) * size_of_each_sample);
+                    char *temp = (char *) realloc(sound_data, (i) * size_of_each_sample);
                     if(temp != NULL)
                     {
                         printf("Rearranging sound data\n");
@@ -530,11 +535,11 @@ void loadWAVFile(char *filename,  ALenum *format, ALvoid **data, ALsizei *size, 
     return;
 }
 
-
+/*
 void SL_InitReverb()
 {
     EFXEAXREVERBPROPERTIES efxReverb;
-    EAXREVERBPROPERTIES eaxRoom = EFX_REVERB_PRESET_ROOM;
+    EFXEAXREVERBPROPERTIES eaxRoom = EFX_REVERB_PRESET_ROOM;
     
     alGenAuxiliaryEffectSlots(1, uiEffectSlot);
 	if (alGetError() != AL_NO_ERROR)
@@ -557,7 +562,7 @@ void SL_InitReverb()
     alEffecti(*uiEffect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
     if (alGetError() != AL_NO_ERROR)
     {
-        alDeleteEffects(1, puiEffect);
+        alDeleteEffects(1, uiEffect);
         printf("CANT DO THE REVERBS (3) :'\\n");
         return;
     }
@@ -595,8 +600,8 @@ void SL_InitReverb()
     // Load Effect into Auxiliary Effect Slot
     alAuxiliaryEffectSloti(*uiEffectSlot, AL_EFFECTSLOT_EFFECT, *uiEffect);
 
-    // Enable (non-filtered) Send from Source to Auxiliary Effect Slot
-    alSource3i(uiSource, AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, AL_FILTER_NULL);
+    //// Enable (non-filtered) Send from Source to Auxiliary Effect Slot
+    //alSource3i(uiSource, AL_AUXILIARY_SEND_FILTER, uiEffectSlot, 0, AL_FILTER_NULL);
 
 }
 void SL_UninitReverb()
@@ -616,4 +621,8 @@ void SL_UninitReverb()
         // Delete Auxiliary Effect Slot
         alDeleteAuxiliaryEffectSlots(1, uiEffectSlot);
     }
-}
+}*/
+
+#if defined(__cplusplus)
+}  /* extern "C" */
+#endif

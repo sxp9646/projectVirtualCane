@@ -288,14 +288,14 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 			if(markerIds[i] < MAX_MARKERS && valid_marker[markerIds[i]] == true)		
             {
                 markerSeen[markerIds[i]] = -1;
-                
-                // I'm really hoping that performing the angular filter on the rodrigues rotation vector will actually work out
-                // I have absolutely no reason to think this, and it's basically just blind faith at this point
-                // simply because we're running out of options
-                // and time
-                // and willpower
-                // S.B.
-
+                /*
+                 * I'm really hoping that performing the angular filter on the rodrigues rotation vector will actually work out
+                 * I have absolutely no reason to think this, and it's basically just blind faith at this point
+                 * simply because we're running out of options
+                 * and time
+                 * and willpower
+                 * S.B.
+                 */
                 cv::Mat expected;
                 cv::Rodrigues(rotationVectors[i], expected);
 
