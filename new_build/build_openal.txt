@@ -1,0 +1,33 @@
+# clone our project, doesnt matter where?
+
+git clone https://github.com/sxp9646/projectDaredevil.git
+
+# Clone this inside the project directory at the root
+ 
+git clone https://github.com/kcat/openal-soft.git
+
+# build openAL you NEED CMAKE FOR THIS TO WORK
+ 
+sudo apt-get install cmake
+cd openal-soft/build/
+cmake ..
+make
+sudo make install
+
+# Enable HRTF:
+sudo echo "hrtf = true" >> /etc/openal/alsoft.conf
+
+# NOW ITS MY RESPONSIBILITY TO MAKE MY SCRIPTS GRAB
+# al.h and other headers from the appropriate directory
+# AND libopenal.so from its' directory as well
+
+# headers:
+# openal-soft/include/*.h
+
+# libopenal.so:
+# openal-soft/build/libopenal.so
+
+
+
+# EXTRA CRAP
+sudo apt-get install gedit

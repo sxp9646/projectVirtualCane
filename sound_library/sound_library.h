@@ -124,7 +124,8 @@ typedef struct SL_Listener {
 // Or else.
 void SL_Init();
 
-void SL_InitReverb();
+//void SL_InitReverb();
+//void SL_UninitReverb();
 
 // Call this function before you even try to use a Sound_Source.
 // Please don't pass in a NULL POINTER for the structure.  If you do, it will
