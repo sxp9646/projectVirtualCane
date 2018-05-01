@@ -16,7 +16,7 @@ int main()
 	SL_Sound test_sound;
 	SL_Listener test_listener;
 	SL_Init();
-    SL_InitReverb();
+    //SL_InitReverb();
 	SL_InitSource(&test_sound);
 	
 // Initialization
@@ -114,7 +114,7 @@ int main()
 	SL_PlaySound(&test_sound, FALSE, FALSE);
 	SL_FreeSound(&test_sound);
 	printf("free'd sound\n");
-    SL_UninitReverb();
+    //SL_UninitReverb();
 	SL_Uninit();
     printf("done\n");
 
