@@ -1,0 +1,1 @@
+This is where all the sounds are kept.  When the sound_library code tries to open up a sound file, it expects the sounds to exist here.

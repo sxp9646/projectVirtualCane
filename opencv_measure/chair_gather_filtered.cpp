@@ -6,7 +6,6 @@
 #include "opencv2/calib3d.hpp"
 
 #include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
-#include "/home/pi/projectDaredevil/sound_library/sound_library.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -14,41 +13,33 @@
 using namespace std;
 using namespace cv;
 
-const int AVG_SIZE = 25;
 const float calibrationSquareDimension = 0.0251f; //meters
 const float arucoSquareDimension = .137f; //meters
 const Size chessboardDimensions = Size(9, 6);
 
-
-/*
-// This is a worthless pile of garbage that will not help you solve the project problem at all and I strongly recommend you leave this commented out
-
-Mat averager[AVG_SIZE];
-int cycle = 0;
-
-void initFivePointAverage(){
-	Mat zero_matrix = Mat(3,3, CV_64F, double(0));
-	for(int i = 0; i < AVG_SIZE; i++)
+void dataWrite(Vec3d translation)
+{
+	ofstream arucoFile;
+	arucoFile.open ("test_data.txt", std::ios_base::app);
+	// File format:
+	// translation to chair (meters):
+	// x, y, z
+	for(int i = 0; i < 3; i++)
 	{
-		averager[i] = zero_matrix;
+		arucoFile <<translation[i];
+		if(i < 2)
+		{
+			arucoFile << ",";
+		}
+		else
+		{
+			arucoFile << "\n";
+		}
 	}
+
+	arucoFile.close();
 }
-Mat fivePointAverage(Mat input){
-	averager[cycle] = input;
-	
-	cycle++;
-	if(cycle >= AVG_SIZE){
-		cycle = 0;
-	}
-	Mat sum = averager[0];
-	for(int i = 1; i < AVG_SIZE; i++)
-	{
-		sum = sum + averager[i];
-	}
-	sum = sum / AVG_SIZE;
-	return sum;
-}
-*/
+
 
 void atcWrite(int markerId, Mat atc)
 {
@@ -204,31 +195,18 @@ void getChessboardCorners(vector<Mat> images, vector<vector<Point2f>>& allFoundC
 
 int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficients, float arucoSquareDimensions){
 	Mat frame;
-	SL_Sound source, arrival_source;
-	//initFivePointAverage();
+	Mat pTa;
+	Mat pTc;
+	Vec3f eulerAngles;
 
-	SL_Init();
-	SL_InitSource(&source);
-    SL_InitSource(&arrival_source);
-	SL_LoadSound(&source,(char *)"mario_jump.wav");
-    SL_LoadSound(&arrival_source, (char *) "mario_coin.wav");
-	SL_TurnUser(    0.0, 0.0, 1.0, 
-        					    0.0, 1.0, 0.0);
-
-    arrival_source.x = 0;
-    arrival_source.y = 0;
-    arrival_source.z = 2;
-    SL_PlaceSound(&arrival_source);
-
-	// ITS HARD CODED RIGHT NOW.  PLS NO TOUCH
     const int MAX_MARKERS = 24;
 
     bool valid_marker[MAX_MARKERS]; 
     Mat aTc[MAX_MARKERS];
     OutlierDetector marker_filter[MAX_MARKERS];
     OutlierDetector chair_consensus;
-    OutlierDetector chair_filter(10);
-
+    OutlierDetector chair_filter;
+    
     chair_filter.error_bounds = 0.05;
     for(int i = 0; i < MAX_MARKERS; i++)
     {
@@ -246,10 +224,6 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
         }
     }
 
-	Mat pTa;
-	Mat pTc;
-	Vec3f eulerAngles;
-
 	vector<int> markerIds;
 	vector<vector<Point2f>> markerCorners, rejectedCandidates;
 	aruco::DetectorParameters parameters;
@@ -260,19 +234,33 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	if (!vid.isOpened()) {
 		return -1;
 	}
-	//namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
+	namedWindow("Webcam", CV_WINDOW_AUTOSIZE);
 	vector<Vec3d> rotationVectors, translationVectors;
 
+	bool data_out = false;
 	while (true) {
+		
 		if (!vid.read(frame)) {
 			break;
 		}
-		parameters.cornerRefinementMethod = cv::aruco::CORNER_REFINE_CONTOUR;
-		parameters.adaptiveThreshConstant=true;
+		char character = waitKey(1000 / 20);
+
+		if(character == ' ')
+		{
+			data_out =! data_out;
+			cout << "Gathering Mode: " << data_out << "\n";
+
+			// add a newline to the testing data to seperate different tests from eachother
+			ofstream arucoFile;
+			arucoFile.open ("test_data.txt", std::ios_base::app);
+			arucoFile << "\n";
+
+			arucoFile.close();
+		}
 
 		aruco::detectMarkers(frame, markerDictionary, markerCorners, markerIds);
 		aruco::estimatePoseSingleMarkers(markerCorners, arucoSquareDimension, cameraMatrix, distanceCoefficients, rotationVectors, translationVectors);
-        
+
         // Used to figure out which markers were not seen.  Markers seen will mark their respective
         // indices as "-1" as a flag to denote that they were seen and accounted for in the chair position thingee
         int markerSeen[MAX_MARKERS];
@@ -280,10 +268,13 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
         {
             markerSeen[i] = i;
         }
-        for(int i = 0 ; i < 10; i++)
+        for(int i = 0 ; i < 7; i++)
+        {
             chair_consensus.empty();
+        }
 
-		for (int i = 0; i < markerIds.size(); i++)
+
+		for (int i = 0; i < markerIds.size(); i++) 
         {
 			if(markerIds[i] < MAX_MARKERS && valid_marker[markerIds[i]] == true)		
             {
@@ -295,18 +286,19 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
                 // and time
                 // and willpower
                 // S.B.
-
                 cv::Mat expected;
                 cv::Rodrigues(rotationVectors[i], expected);
 
                 eulerAngles = rotationMatrixToEulerAngles(expected);
                 marker_filter[markerIds[i]].add(eulerAngles);
+
                 Vec3f filtered_rotation = marker_filter[markerIds[i]].detect();
+
                 expected = eulerAnglesToRotationMatrix(filtered_rotation);
                 cv::Rodrigues(expected, rotationVectors[i]);
+
                 aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 
-			    //expected = fivePointAverage(expected);
 			    pTa = (Mat_<double>(4,4) << 	expected.at<double>(0,0), expected.at<double>(0,1), expected.at<double>(0,2), translationVectors[i][0],
 										    expected.at<double>(1,0), expected.at<double>(1,1), expected.at<double>(1,2), translationVectors[i][1],
 										    expected.at<double>(2,0), expected.at<double>(2,1), expected.at<double>(2,2), translationVectors[i][2],
@@ -318,25 +310,9 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 			    chair_pos[1] = pTc.at<double>(1, 3);
 			    chair_pos[2] = pTc.at<double>(2, 3);
 
-                // Add past chair data to the consensus algorithm
-                if(chair_filter.count() > 0)
-                {
-                    chair_consensus.add(chair_filter.detect());
-                }
                 chair_consensus.add(chair_pos);
-
-            /*
-                cout << markerIds[i] << ": ";
-                cout << "Rotation (euler) X Y Z";
-                cout << eulerAngles * 180 / 3.14;
-                cout << "\nRotation (euler) X Y Z";
-                cout << filtered_rotation * 180 / 3.14;
-                cout << "\nTranslation X Y Z: ";
-                cout << translationVectors[i] << "\n\n";
-            */
-			}
+            }
 		}
-        // Loop through every marker that was not seen:
         int not_seen = 0;
         for(int i = 0; i < MAX_MARKERS; i++)
         {
@@ -356,36 +332,20 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             Vec3f chair_position = chair_consensus.detect();
             chair_filter.add(chair_position);
         }
-        if(chair_filter.count() >= 3)
+        if(chair_filter.check() == true)
         {
             Vec3f final_chair_pos = chair_filter.detect();
-            /*
-	        cout << "Chair Offset <X Y Z>: ";
-	        cout << final_chair_pos;            
-            cout << "\n";
-            */
-            source.x = final_chair_pos[0];
-            source.y = final_chair_pos[1];
-            source.z = final_chair_pos[2];
-            SL_PlaceSound(&source);
-            SL_PlaySound(&source, 1, 0);
-            double dist = sqrt(final_chair_pos[0]*final_chair_pos[0] + final_chair_pos[2] * final_chair_pos[2]);
-            if(dist <= 0.67)
+            if(data_out == true)
             {
-                SL_PlaySound(&arrival_source, 1, 0);
-            }
-            else
-            {
-                SL_PlaySound(&arrival_source, 0, 0);
+	            cout << "Chair Offset <X Y Z>: ";
+	            cout << final_chair_pos;
+                cout << "\n";
+                dataWrite(final_chair_pos);
             }
         }
-        else
-        {
-            SL_PlaySound(&source, 0, 0);
-            SL_PlaySound(&arrival_source, 0, 0);
-        }
-		//imshow("Webcam", frame);
-		if (waitKey(30) >= 0) break;
+
+		imshow("Webcam", frame);
+		//if (waitKey(30) >= 0) continue;
 	}
 	return 1;
 }
