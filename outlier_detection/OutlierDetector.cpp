@@ -251,7 +251,10 @@ int main()
 			int j = 0;
 			while(token != NULL)
 			{
-				data_in[j] = atof(token) * PI / 180;
+                if(j > 2)
+                {
+    				data_in[j-3] = atof(token) * PI / 180;
+                }
 				token = strtok(NULL, delim);
 				j++;
 			}
