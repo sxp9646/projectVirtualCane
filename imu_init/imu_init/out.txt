@@ -1,0 +1,71 @@
+Script started on Sat 07 Apr 2018 19:02:46 UTC
+]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m exit./testpp
+Pitch tilt:  67.675	roll tilt:  82.683	Degree with tilt: 305.339
+
+
+305.34
+Pitch tilt:  67.772	roll tilt:  82.457	Degree with tilt: 311.725
+
+
+311.73
+Pitch tilt:  67.933	roll tilt:  83.388	Degree with tilt: 308.906
+
+
+308.91
+Pitch tilt:  68.255	roll tilt:  83.383	Degree with tilt: 314.436
+
+
+314.44
+Pitch tilt:  68.630	roll tilt:  84.461	Degree with tilt: 348.968
+
+
+348.97
+Pitch tilt:  68.982	roll tilt:  83.297	Degree with tilt: 327.664
+
+
+327.66
+Pitch tilt:  68.931	roll tilt:  83.776	Degree with tilt: 332.483
+
+
+332.48
+Pitch tilt:  69.007	roll tilt:  82.235	Degree with tilt: 336.543
+
+
+336.54
+Pitch tilt:  69.310	roll tilt:  83.186	Degree with tilt: 337.189
+
+
+337.19
+^C
+]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m ./testpp[4Pexit./testppsudo shutdown now[9P./testppsudo shutdown now[9P./testpp[4Pexit./testpp[K./testpp[4Pexit./testppsudo shutdown now[9P./testppgcc -std=c99 -lm package_teest.c -o testpp[A]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m ./testpp[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cgcc -std=c99 -lm package_teest.c -o testpp[A]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m ./testpp[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cgcc -std=c99 -lm package_teest.c -o testpp
+]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m gcc -std=c99 -lm package_teest.c -o testpp[A]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m ./testpp[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C
+-nan, 0.000000, 123.59
+-nan, 0.000000, 124.77
+-nan, 0.000000, 123.47
+-nan, 0.000000, 123.50
+-nan, 0.000000, 123.53
+-nan, 0.000000, 124.58
+-nan, 0.000000, 124.31
+-nan, 0.000000, 123.84
+-nan, 0.000000, 123.14
+-nan, 0.000000, 123.52
+-nan, 0.000000, 123.63
+-nan, 0.000000, 125.69
+^X-nan, 0.000000, 125.06
+^C
+]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m nsan[K[K[K[Knano package_test.c 
+[?1049h[1;24r(B[m[4l[?7h[?12l[?25h[?1h=[?1h=[?1h=[39;49m[39;49m(B[m[H[2J(B[0;7m  GNU nano 2.2.6            File: package_test.c                                [3;1H(B[0;1m[36m#include[39m(B[m (B[0;1m[33m<stdio.h>[4d[36m#include[39m(B[m (B[0;1m[33m<stdlib.h>[5d[36m#include[39m(B[m (B[0;1m[33m<math.h>[6d[36m#include[39m(B[m (B[0;1m[33m<fcntl.h>[7d[36m#include[39m(B[m (B[0;1m[33m<linux/i2c-dev.h>[8d[36m#include[39m(B[m (B[0;1m[33m<string.h>[9d[36m#include[39m(B[m (B[0;1m[33m<unistd.h>[10d[36m#include[39m(B[m (B[0;1m[33m<stdint.h>[11d[36m#include[39m(B[m (B[0;1m[33m"LSM9DS1.h"[12d[36m#include[39m(B[m (B[0;1m[33m"imu_init.c"[13d(B[0m[32mint[39m(B[m main([32mvoid[39m(B[m){[14;9H[32mfloat[39m(B[m i = 0.0;[15;9H(B[0;1m[33mfor[39m(B[m(;;){[16di = getReading(0);[17;17Hprintf((B[0;1m[33m"%.2f\n"[39m(B[m, i);[18;17Hsleep(1);[19;9H}[21d}[22;32H(B[0;7m[ Read 19 lines ][23d^G(B[m Get Help  (B[0;7m^O(B[m WriteOut  (B[0;7m^R(B[m Read File (B[0;7m^Y(B[m Prev Page (B[0;7m^K(B[m Cut Text  (B[0;7m^C(B[m Cur Pos[24d(B[0;7m^X(B[m Exit[14G(B[0;7m^J(B[m Justify   (B[0;7m^W(B[m Where Is  (B[0;7m^V(B[m Next Page (B[0;7m^U(B[m UnCut Text(B[0;7m^T(B[m To Spell[3d[4d[5d[6d[7d[8d[9d[10d[11d[12d[13d[14d[15d[16d[17d[18d[19d[19;9H}[20d[21d}[A[A[A[A[22d[K[17;9H[17;17Hp[1;71H(B[0;7mModified[17;17H(B[m/printf((B[0;1m[33m"%.2f\n"[39m(B[m, i);[17;18H(B[0;1m[34m//printf("%.2f\n", i);[17;19H[39m(B[m[18d[22d(B[0;7mSave modified buffer (ANSWERING "No" WILL DESTROY CHANGES) ?                    [23;1H Y(B[m Yes[K[24d(B[0;7m N(B[m No  [14G   (B[0;7m^C(B[m Cancel[K[22;62H(B[0;7mFile Name to Write: package_test.c                          [23d^G(B[m Get Help[23;21H(B[0;7mM-D(B[m DOS Format[41G(B[0;7mM-A(B[m Append[23;61H(B[0;7mM-B(B[m Backup File[24d(B[0;7m^C(B[m Cancel[17G    (B[0;7mM-M(B[m Mac Format[41G(B[0;7mM-P(B[m Prepend[22;35H[23d[39;49m(B[m[J[1;71H(B[0;7m        [22;31H(B[m[1K (B[0;7m[ Wrote 19 lines ](B[m[K[24;80H[24;1H[?1049l[?1l>]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m nano package_test.c [12P./testppgcc -std=c99 -lm package_teest.c -o testpp
+]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m gcc -std=c99 -lm package_teest.c -o testpp[A]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m [6Pnano package_test.c 
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[12P./testpp
+^C
+]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m ./testppgcc -std=c99 -lm package_teest.c -o testpp[A]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m [6Pnano package_test.c 
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C
+[?1049h[1;24r(B[m[4l[?7h[?12l[?25h[?1h=[?1h=[?1h=[39;49m[39;49m(B[m[H[2J(B[0;7m  GNU nano 2.2.6            File: package_test.c                                [3;1H(B[0;1m[36m#include[39m(B[m (B[0;1m[33m<stdio.h>[4d[36m#include[39m(B[m (B[0;1m[33m<stdlib.h>[5d[36m#include[39m(B[m (B[0;1m[33m<math.h>[6d[36m#include[39m(B[m (B[0;1m[33m<fcntl.h>[7d[36m#include[39m(B[m (B[0;1m[33m<linux/i2c-dev.h>[8d[36m#include[39m(B[m (B[0;1m[33m<string.h>[9d[36m#include[39m(B[m (B[0;1m[33m<unistd.h>[10d[36m#include[39m(B[m (B[0;1m[33m<stdint.h>[11d[36m#include[39m(B[m (B[0;1m[33m"LSM9DS1.h"[12d[36m#include[39m(B[m (B[0;1m[33m"imu_init.c"[13d(B[0m[32mint[39m(B[m main([32mvoid[39m(B[m){[14;9H[32mfloat[39m(B[m i = 0.0;[15;9H(B[0;1m[33mfor[39m(B[m(;;){[16di = getReading(0);[17;17H(B[0;1m[34m//printf("%.2f\n", i);[18;17H[39m(B[msleep(1);[19;9H}[21d}[22;32H(B[0;7m[ Read 19 lines ][23d^G(B[m Get Help  (B[0;7m^O(B[m WriteOut  (B[0;7m^R(B[m Read File (B[0;7m^Y(B[m Prev Page (B[0;7m^K(B[m Cut Text  (B[0;7m^C(B[m Cur Pos[24d(B[0;7m^X(B[m Exit[14G(B[0;7m^J(B[m Justify   (B[0;7m^W(B[m Where Is  (B[0;7m^V(B[m Next Page (B[0;7m^U(B[m UnCut Text(B[0;7m^T(B[m To Spell[3d[4d[5d[6d[7d[8d[9d[10d[11d[12d[13d[14d[15d[22;13H(B[0;7m[ line 13/20 (65%), col 1/17 (5%), char 238/312 (76%) ][15d(B[m[23d[J[24;80H[24;1H[?1049l[?1l>]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m y
+bash: y: command not found
+]0;pi@raspberrypi: ~/projectDaredevil/imu_read/imu_init[01;32mpi@raspberrypi[00m:[01;34m~/projectDaredevil/imu_read/imu_init $[00m y[Kexit
+exit
+
+Script done on Sat 07 Apr 2018 19:14:31 UTC

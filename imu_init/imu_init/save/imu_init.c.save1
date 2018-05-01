@@ -1,0 +1,170 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <fcntl.h>
+#include <linux/i2c-dev.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <time.h>
+//#include "imu_init.h"
+#include "LSM9DS1.h"
+
+#define M_PI 3.14159265359
+#define RAD_TO_DEG 180/M_PI
+
+
+int file;
+int acc[3];
+int gyr[3];
+int magx[3];
+int magy[3];
+int magz[3];
+int accX = 0;
+int accY = 0;
+//int accZ = 0;
+//int magA = 0;
+float  magDeg = 0.0;
+//float res = 0.0;
+//float mx, my, mz;
+void selectDevice (int addr){
+	char filename[20];
+	//int file;
+	sprintf(filename, "/dev/i2c-%d",1);
+	file = open(filename, O_RDWR);
+	if (file<0){
+		printf("Bus not opened");
+		exit(1);
+	}
+	if (ioctl(file, I2C_SLAVE, addr) <0){
+		printf("Device can not be selected");
+	}else{
+		//printf("it worked");
+	}
+}
+
+void writeReg(int  device, uint8_t reg, uint8_t value)
+{
+
+        selectDevice(device);
+
+        int result = i2c_smbus_write_byte_data(file, reg, value);
+        if (result == -1){
+                printf ("Failed to write to register");
+        exit(1);
+    }
+}
+
+
+void enableImu(){
+ /* enable mag */
+        writeReg(0x1e, LSM9DS1_CTRL_REG1_M, (0b10011100)); //set xy to hi-pro & $
+        writeReg(0x1e, LSM9DS1_CTRL_REG2_M, (0b01000000)); //full 16 gauss
+        writeReg(0x1e, LSM9DS1_CTRL_REG3_M, (0b00000000)); //conti-mode
+        writeReg(0x1e, LSM9DS1_CTRL_REG4_M, (0b00000000)); //set z to hi-pro(++i$
+        /* enable mag end */
+        /* enable Gyro */
+        writeReg(0x6b, LSM9DS1_CTRL_REG4, (0b00111000));
+        writeReg(0x6b, LSM9DS1_CTRL_REG1_G, (0b10111000));
+	writeReg(0x6b, LSM9DS1_ORIENT_CFG_G, (0b10111000));
+        /* enable gyro end */
+        /* enable acc */
+        writeReg(0x6b, LSM9DS1_CTRL_REG5_XL, (0b00111000));
+        writeReg(0x6b, LSM9DS1_CTRL_REG6_XL, (0b00101000));
+	//printf("working again");
+
+}
+
+void readBlock(uint8_t command, uint8_t size, uint8_t *data)
+{	//printf("before");
+	int result = i2c_smbus_read_i2c_block_data(file, command, size, data);
+    	//printf("after");
+	if (result != size){
+                printf("Failed to read block from I2C.");
+                exit(1);
+        }
+}
+
+void readreg(int  array[], int reg, int device)
+{
+        uint8_t block[6];
+        selectDevice(device);
+        readBlock(0x80 |  reg, sizeof(block), block);
+        // Combine readings for each axis.
+        array[0] = (int16_t)(block[0] | block[1] << 8);
+        array[1] = (int16_t)(block[2] | block[3] << 8);
+        array[2] = (int16_t)(block[4] | block[5] << 8);
+}
+
+int testp(){
+	enableImu();
+	for(;;){
+	//readreg(gyr, LSM9DS1_OUT_X_L_G, 0x6b);
+	//readreg(mag, LSM9DS1_OUT_X_L_M, 0x1e);
+	readreg(acc, LSM9DS1_OUT_X_L_XL, 0x6b);
+	accX = (float) (atan2(acc[1], acc[2])+M_PI)* RAD_TO_DEG;
+	accY = (float) (atan2(acc[2], acc[0])+M_PI)* RAD_TO_DEG;
+	accX -= (float)180.0;
+	if(accY >90){
+		accY -= (float)270;
+	}else{
+		accY += (float)90;
+	}
+	printf("Roll: %.2f\n",accX);
+	printf("Pitch: %.2f\n\n", accY);
+	sleep(1);
+	}
+	return 0;
+}
+
+float getReading (int angle){
+	enableImu();
+	if (angle == 0){
+		readreg(magx, LSM9DS1_OUT_X_L_M, 0x1e);
+ 		readreg(magy, LSM9DS1_OUT_Y_L_M, 0x1e);
+ 		readreg(magz, LSM9DS1_OUT_Z_L_M, 0x1e);
+		//readreg(mag, LSM9DS1_OUT_X_H_M, 0x1e);
+		printf("X %i  \tY %i  \t Z %i \n",magx[0],magy[0],magz[0]);
+		magDeg = 180 * atan2(magy[0],magx[0])/M_PI;
+		if(magDeg <0){
+			magDeg += 360;
+		}
+		printf("Degree %7.3f \t ", magDeg); 
+
+		//if (magDeg < 0){
+		//	magDeg += 360;
+		//}
+        	//magY = (float) (atan2(mag[2], mag[0])+M_PI)* RAD_TO_DEG;
+		//if (mag[1] > 0.0){
+		//	magDeg = 90 - (atan(mx / my) * RAD_TO_DEG);
+		//}else if (mag[1] < 0.0){
+		//	magDeg = - (atan(mx / my) * RAD_TO_DEG);
+		//}else{
+		//	if(mag[0] < 0){
+		//		magDeg = 180.0;
+		//	}else{
+		//		magDeg = 0;
+		//	}
+		//}
+		return magDeg;
+	}else if (angle == 1){
+//		//readreg(gyr, LSM9DS1_OUT_X_L_G, 0x6b);
+        	readreg(acc, LSM9DS1_OUT_X_L_XL, 0x6b);
+        	accX = (float) (atan2(acc[1], acc[2])+M_PI)* RAD_TO_DEG;
+        	accX -= (float)180.0;
+		return accX;
+	}else if (angle == 2){
+//		//readreg(gyr, LSM9DS1_OUT_X_L_G, 0x6b);
+                readreg(acc, LSM9DS1_OUT_X_L_XL, 0x6b);
+		accY = (float) (atan2(acc[2], acc[0])+M_PI)* RAD_TO_DEG; 
+		if(accY >90){
+                        accY -= (float)270;
+                }else{
+                        accY += (float)90;
+                }
+		return accY;
+	}else{
+		return 0.0;
+	}
+
+}
