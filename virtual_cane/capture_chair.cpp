@@ -5,7 +5,7 @@
 #include "opencv2/aruco.hpp"
 #include "opencv2/calib3d.hpp"
 
-#include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
+#include "/home/pi/projectVirtualCane/outlier_detection/OutlierDetector.hpp"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -217,7 +217,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 		for (int i = 0; i < markerIds.size(); i++) {
 
 			cv::Mat expected;
-
+            aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 			// Would like to see exactly what the output rotation matrix is here.
 			cv::Rodrigues(rotationVectors[i], expected);
 
@@ -227,7 +227,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
             Vec3f filtered_rotation = marker_filter[markerIds[i]].detect();
             expected = eulerAnglesToRotationMatrix(filtered_rotation);
             cv::Rodrigues(expected, rotationVectors[i]);
-            aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
+            //aruco::drawAxis(frame, cameraMatrix, distanceCoefficients, rotationVectors[i], translationVectors[i], arucoSquareDimension); //0.0235f
 			// This matrix may not be the correct representation of the kinematics matrix that we were assuming we had when we (josh) did the math
 			Mat cTa = (Mat_<double>(4,4) << 	expected.at<double>(0,0), expected.at<double>(0,1), expected.at<double>(0,2), translationVectors[i][0],
 										expected.at<double>(1,0), expected.at<double>(1,1), expected.at<double>(1,2), translationVectors[i][1],
@@ -238,7 +238,7 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 
 			eulerAngles = rotationMatrixToEulerAngles(expected) * 180 / 3.14;
 
-            if(marker_filter[markerIds[i]].check() == true)
+            if(marker_filter[markerIds[i]].count() == 19)
             {
                 cout << "Marker Ready: " << markerIds[i] << "\n";
             }

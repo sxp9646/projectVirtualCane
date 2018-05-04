@@ -5,12 +5,14 @@
 #include "opencv2/aruco.hpp"
 #include "opencv2/calib3d.hpp"
 
-#include "/home/pi/projectDaredevil/outlier_detection/OutlierDetector.hpp"
-#include "/home/pi/projectDaredevil/sound_library/sound_library.h"
+#include "/home/pi/projectVirtualCane/outlier_detection/OutlierDetector.hpp"
+#include "/home/pi/projectVirtualCane/sound_library/sound_library.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
 
+#define CHAIR_SOUND     "mario_jump.wav"
+#define ARRIVAL_SOUND "mario_coin.wav"
 using namespace std;
 using namespace cv;
 
@@ -210,8 +212,8 @@ int startWebcamMonitoring(const Mat& cameraMatrix, const Mat& distanceCoefficien
 	SL_Init();
 	SL_InitSource(&source);
     SL_InitSource(&arrival_source);
-	SL_LoadSound(&source,(char *)"mario_jump.wav");
-    SL_LoadSound(&arrival_source, (char *) "mario_coin.wav");
+	SL_LoadSound(&source,(char *) CHAIR_SOUND);
+    SL_LoadSound(&arrival_source, (char *) ARRIVAL_SOUND);
 	SL_TurnUser(    0.0, 0.0, 1.0, 
         					    0.0, 1.0, 0.0);
 

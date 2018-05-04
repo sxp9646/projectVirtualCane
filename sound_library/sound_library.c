@@ -9,7 +9,7 @@ extern "C" {
 #endif
 // This tells the program WHERE TO LOOK FOR THE SOUNDS. Currently its' the current directory
 // Currently not used, but will be soonTM
-#define BASE_SOUND_PATH		"/home/pi/projectDaredevil/sound/"
+#define BASE_SOUND_PATH		"/home/pi/projectVirtualCane/sound/"
 
 #define DEBUG 0
 
