@@ -19,3 +19,8 @@ To use this project:
 1.5: pair your favorite headphones to the Pi
 2: run virtual_cane
     a: disconnect VGA to HDMI and go crazy
+	
+To acquire an img of a working RaspberryPi Setup, go to this link:
+https://drive.google.com/file/d/1uKp48gP0VQ_ter5C2dode3Yt7nkozNkh/view?usp=sharing
+
+NOTE: You will need access to download this. Please email suhail.prasathong@gmail.com to gain access to this.
